@@ -1,0 +1,25 @@
+node_modules/
+.pnpm-store/
+dist/
+
+# Action bundle should be committed
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test output
+coverage/
+
+# Build caches
+*.tsbuildinfo
+*.tmp
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Local scratch files
+tmp-package.json

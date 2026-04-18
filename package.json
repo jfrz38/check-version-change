@@ -1,0 +1,26 @@
+{
+  "name": "check-version-change",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GitHub Action that compares a local package version with the published version in npm or PyPI.",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "packageManager": "pnpm@10.12.3",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js",
+    "test": "node tests/run-tests.js"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.0",
+    "@actions/github": "9.1.0",
+    "semver": "7.7.4"
+  },
+  "devDependencies": {
+    "@types/node": "25.6.0",
+    "esbuild": "0.28.0",
+    "typescript": "6.0.3"
+  }
+}
