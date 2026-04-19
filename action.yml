@@ -1,0 +1,53 @@
+name: 'check-version-change'
+description: 'Compare a local package version with the latest version published to package manager.'
+author: 'jfrz38'
+
+inputs:
+  file-path:
+    description: 'Path to package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, or go.mod'
+    required: true
+
+  package-name:
+    description: 'Optional override for the package name used in the registry lookup'
+    required: false
+
+  registry:
+    description: 'Registry to query: auto, npm, pypi, maven-central, crates-io, or go-proxy'
+    required: false
+    default: 'auto'
+
+  version-pattern:
+    description: 'Custom regex used to extract the local version from the file contents. Must contain exactly one capture group.'
+    required: false
+
+  compare-semver:
+    description: 'If true, compute is-higher using semver when both versions are semver-compatible'
+    required: false
+    default: 'true'
+
+outputs:
+  changed:
+    description: 'true when the local version differs from the published version, or when no published version exists'
+
+  local-version:
+    description: 'Version detected in the repository file'
+
+  published-version:
+    description: 'Version detected in the registry, or an empty string when the package is not found'
+
+  is-higher:
+    description: 'true when compare-semver is enabled and the local version is semver-greater than the published version'
+
+  registry-detected:
+    description: 'Registry used for the lookup'
+
+  package-name-detected:
+    description: 'Package name used for the lookup'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'git-compare'
+  color: 'blue'
