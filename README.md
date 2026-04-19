@@ -212,12 +212,13 @@ For `go.mod`, the action detects the module path automatically, but Go does not 
     version-pattern: 'build_version\\s*=\\s*"([^"]+)"'
 ```
 
-## Build
+## Development
 
 Install dependencies and rebuild the bundled action:
 
 ```bash
 pnpm install
+pnpm typecheck
 pnpm build
 ```
 
@@ -226,5 +227,39 @@ Run the unit tests:
 ```bash
 pnpm test
 ```
+
+Run tests in watch mode:
+
+```bash
+pnpm test:watch
+```
+
+Run tests with coverage:
+
+```bash
+pnpm test:coverage
+```
+
+Run the full local CI flow:
+
+```bash
+pnpm ci
+```
+
+## Makefile
+
+If you prefer shorter commands, the repository also includes a `Makefile`:
+
+```bash
+make install
+make typecheck
+make test
+make test-watch
+make test-coverage
+make build
+make ci
+```
+
+On Windows, this is useful if you already use Git Bash, MSYS2, Cygwin, or WSL. If you do not have `make`, the `pnpm` commands above are the primary interface.
 
 The repository already includes a checked-in `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.
