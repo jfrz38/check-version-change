@@ -1,6 +1,5 @@
 node_modules/
 .pnpm-store/
-dist/
 
 # Action bundle should be committed
 

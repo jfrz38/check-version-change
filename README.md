@@ -243,7 +243,7 @@ pnpm test:coverage
 Run the full local CI flow:
 
 ```bash
-pnpm ci
+pnpm validate
 ```
 
 ## Makefile
@@ -257,9 +257,33 @@ make test
 make test-watch
 make test-coverage
 make build
+make validate
 make ci
 ```
 
 On Windows, this is useful if you already use Git Bash, MSYS2, Cygwin, or WSL. If you do not have `make`, the `pnpm` commands above are the primary interface.
+
+## GitHub Workflows
+
+The repository includes two workflows:
+
+- `CI`: runs on pull requests and on pushes to `main`, and executes the local `pnpm validate` pipeline
+- `Release`: runs on every push to `main`, validates the project again, creates the exact version tag from `package.json` when it does not exist yet, and force-updates the major tag such as `v1`
+
+Both workflows also rebuild the project and fail if the committed `dist/index.js` is not aligned with the source code. If that happens locally, run:
+
+```bash
+pnpm build
+```
+
+and commit the updated bundle before merging.
+
+This means every merge to `main` automatically updates the floating major tag that consumers typically use:
+
+```yaml
+uses: owner/check-version-change@v1
+```
+
+If the version in `package.json` is new, the workflow also creates a matching GitHub Release for that exact tag.
 
 The repository already includes a checked-in `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.

@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate build before release
+        run: pnpm validate
+
+      - name: Verify committed dist bundle is up to date
+        shell: bash
+        run: |
+          if ! git diff --exit-code -- dist/index.js; then
+            echo "::error::dist/index.js is out of date. Run 'pnpm build' and commit the updated bundle."
+            exit 1
+          fi
+
+      - name: Read package version
+        id: version
+        shell: bash
+        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Read major version tag
+        id: major
+        shell: bash
+        run: echo "value=v$(node -p "require('./package.json').version.split('.')[0]")" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update exact version tag
+        env:
+          VERSION_TAG: v${{ steps.version.outputs.value }}
+        run: |
+          if git rev-parse "$VERSION_TAG" >/dev/null 2>&1; then
+            echo "Tag $VERSION_TAG already exists. Skipping exact version tag update."
+          else
+            git tag "$VERSION_TAG"
+            git push origin "refs/tags/$VERSION_TAG"
+          fi
+
+      - name: Force-update major version tag
+        env:
+          MAJOR_TAG: ${{ steps.major.outputs.value }}
+        run: |
+          git tag -f "$MAJOR_TAG"
+          git push origin "refs/tags/$MAJOR_TAG" --force
+
+      - name: Create GitHub release when a new exact version is published
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_TAG: v${{ steps.version.outputs.value }}
+        run: |
+          if gh release view "$VERSION_TAG" >/dev/null 2>&1; then
+            echo "Release $VERSION_TAG already exists. Skipping release creation."
+          else
+            gh release create "$VERSION_TAG" \
+              --title "$VERSION_TAG" \
+              --notes "Automated release for $VERSION_TAG from commit $GITHUB_SHA."
+          fi

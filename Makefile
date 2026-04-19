@@ -26,6 +26,10 @@ test-coverage: ## run the test suite with coverage
 build: ## build the bundled GitHub Action
 	pnpm build
 
+.PHONY: validate
+validate: ## run the full local validation pipeline
+	pnpm validate
+
 .PHONY: ci
-ci: ## run the local CI pipeline
-	pnpm ci
+ci: ## alias for the full local validation pipeline
+	pnpm validate
