@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { parseGradleBuildFile } from '../../src/ecosystems/maven-central/gradle';
-import { parsePomXml } from '../../src/ecosystems/maven-central/pom';
-import { fetchMavenCentralPublishedVersion } from '../../src/ecosystems/maven-central/registry';
+import { parseGradleBuildFile } from '../../../src/ecosystems/maven-central/gradle';
+import { parsePomXml } from '../../../src/ecosystems/maven-central/pom';
+import { fetchMavenCentralPublishedVersion } from '../../../src/ecosystems/maven-central/registry';
 
 describe('maven-central', () => {
   it('pom.xml parser resolves parent fallback and project properties', () => {
@@ -48,15 +48,15 @@ describe('maven-central', () => {
 
   it('client extracts latestVersion', async () => {
     const fetchImpl = vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        json: async () => ({
-          response: {
-            docs: [{ latestVersion: '3.1.4' }],
-          },
-        }),
-      })) as unknown as typeof fetch;
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({
+        response: {
+          docs: [{ latestVersion: '3.1.4' }],
+        },
+      }),
+    })) as unknown as typeof fetch;
 
     const result = await fetchMavenCentralPublishedVersion('com.example:demo-lib', { fetchImpl });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchNpmPublishedVersion } from '../../src/ecosystems/npm/registry';
+import { fetchNpmPublishedVersion } from '../../../src/ecosystems/npm/registry';
 
 describe('npm', () => {
   it('client treats 404 as not found', async () => {

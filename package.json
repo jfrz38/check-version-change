@@ -12,9 +12,11 @@
   "scripts": {
     "build": "esbuild src/main.ts --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run tests/unit",
+    "test:watch": "vitest tests/unit",
+    "test:coverage": "vitest run --coverage tests/unit",
+    "test:smoke": "vitest run tests/smoke",
+    "test:acceptance": "vitest run tests/acceptance-tests",
     "validate": "pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {

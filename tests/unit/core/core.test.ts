@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compareSemverVersions } from '../../src/utils/semver';
-import { extractVersionFromPattern } from '../../src/utils/version-pattern';
+import { compareSemverVersions } from '../../../src/utils/semver';
+import { extractVersionFromPattern } from '../../../src/utils/version-pattern';
 
 describe('core', () => {
   it('version pattern requires exactly one capture group', () => {

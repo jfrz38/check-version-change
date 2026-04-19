@@ -14,6 +14,14 @@ typecheck: ## run the TypeScript type checker
 test: ## run the test suite once
 	pnpm test
 
+.PHONY: test-smoke
+test-smoke: ## run the smoke test suite
+	pnpm test:smoke
+
+.PHONY: test-acceptance
+test-acceptance: ## run the acceptance test suite
+	pnpm test:acceptance
+
 .PHONY: test-watch
 test-watch: ## run the test suite in watch mode
 	pnpm test:watch
