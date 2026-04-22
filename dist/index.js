@@ -23403,6 +23403,41 @@ async function readFileAtGitRef(repoRoot, filePath, gitRef, options = {}) {
     throw new Error(`Unable to read "${normalizedPath}" from git ref "${gitRef}": ${suffix}`);
   }
 }
+async function listFilesAtGitRef(repoRoot, gitRef, options = {}) {
+  const execFileImpl = options.execFileImpl ?? execFileAsync;
+  try {
+    const { stdout } = await execFileImpl("git", ["ls-tree", "-r", "--name-only", gitRef], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 10
+    });
+    return stdout.split(/\r?\n/u).map((entry) => entry.trim()).filter(Boolean);
+  } catch (error2) {
+    const suffix = error2 instanceof Error ? error2.message : String(error2);
+    throw new Error(`Unable to list files from git ref "${gitRef}": ${suffix}`);
+  }
+}
+async function resolveCompareFilePathAtGitRef(repoRoot, filePath, gitRef, hasExplicitCompareFilePath, options = {}) {
+  try {
+    await readFileAtGitRef(repoRoot, filePath, gitRef, options);
+    return filePath;
+  } catch (error2) {
+    if (hasExplicitCompareFilePath) {
+      throw error2;
+    }
+  }
+  const targetBaseName = import_node_path5.default.basename(filePath).toLowerCase();
+  const candidates = (await listFilesAtGitRef(repoRoot, gitRef, options)).filter((candidate) => import_node_path5.default.basename(candidate).toLowerCase() === targetBaseName);
+  if (candidates.length === 0) {
+    throw new Error(`Unable to find "${import_node_path5.default.basename(filePath)}" in git ref "${gitRef}".`);
+  }
+  if (candidates.length > 1) {
+    throw new Error(
+      `Multiple files named "${import_node_path5.default.basename(filePath)}" were found in git ref "${gitRef}". Pass "compare-file-path" explicitly.`
+    );
+  }
+  return import_node_path5.default.resolve(repoRoot, candidates[0]);
+}
 
 // src/application/compare-version-request.ts
 var import_node_path6 = __toESM(require("node:path"));
@@ -23410,6 +23445,7 @@ var CompareVersionRequest = class {
   cwd;
   filePath;
   compareFilePath;
+  hasExplicitCompareFilePath;
   packageNameOverride;
   registry;
   compareSource;
@@ -23419,6 +23455,7 @@ var CompareVersionRequest = class {
   constructor(props) {
     this.cwd = props.cwd;
     this.filePath = import_node_path6.default.resolve(props.cwd, props.filePath);
+    this.hasExplicitCompareFilePath = Boolean(props.compareFilePath?.trim());
     this.compareFilePath = import_node_path6.default.resolve(props.cwd, props.compareFilePath || props.filePath);
     this.packageNameOverride = props.packageNameOverride?.trim() || "";
     this.registry = props.registry;
@@ -27171,13 +27208,19 @@ async function resolveComparisonVersion(request2, registryDetected, packageNameD
     };
   }
   const compareRefResolved = resolveGitCompareRef(request2.compareRef, context2);
-  const compareContent = await readFileAtGitRef(request2.cwd, request2.compareFilePath, compareRefResolved);
-  const comparedPackage = await parseLocalPackageContent(request2.compareFilePath, compareContent, request2.versionPattern);
+  const compareFilePathResolved = await resolveCompareFilePathAtGitRef(
+    request2.cwd,
+    request2.compareFilePath,
+    compareRefResolved,
+    request2.hasExplicitCompareFilePath
+  );
+  const compareContent = await readFileAtGitRef(request2.cwd, compareFilePathResolved, compareRefResolved);
+  const comparedPackage = await parseLocalPackageContent(compareFilePathResolved, compareContent, request2.versionPattern);
   return {
     comparedVersion: comparedPackage.version.value,
     registryDetected: "",
     compareRefResolved,
-    compareFilePathResolved: request2.compareFilePath
+    compareFilePathResolved
   };
 }
 
@@ -27245,11 +27288,11 @@ var CompareSource = class _CompareSource {
   }
   static fromInput(rawValue) {
     const normalized = rawValue.trim().toLowerCase();
-    if (!normalized || normalized === "registry") {
-      return new _CompareSource("registry");
-    }
-    if (normalized === "git-ref") {
+    if (!normalized || normalized === "git-ref") {
       return new _CompareSource("git-ref");
+    }
+    if (normalized === "registry") {
+      return new _CompareSource("registry");
     }
     throw new Error(`Unsupported compare-source "${rawValue}". Expected "registry" or "git-ref".`);
   }
@@ -27316,6 +27359,8 @@ var internal = {
   parseSetupPy,
   PypiEcosystem,
   readFileAtGitRef,
+  listFilesAtGitRef,
+  resolveCompareFilePathAtGitRef,
   resolveGitCompareRef,
   CompareSource,
   CompareVersionRequest,
@@ -27326,7 +27371,7 @@ async function run() {
   const request2 = new CompareVersionRequest({
     cwd: process.cwd(),
     registry: (getInput("registry") || "auto").trim().toLowerCase(),
-    compareSource: CompareSource.fromInput(getInput("compare-source") || "registry"),
+    compareSource: CompareSource.fromInput(getInput("compare-source")),
     filePath: getInput("file-path", { required: true }).trim(),
     compareFilePath: getInput("compare-file-path").trim(),
     packageNameOverride: getInput("package-name").trim(),

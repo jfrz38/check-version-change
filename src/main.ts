@@ -19,7 +19,7 @@ import { parsePyProjectToml } from './ecosystems/pypi/pyproject';
 import { fetchPypiPublishedVersion } from './ecosystems/pypi/registry';
 import { parseSetupPy } from './ecosystems/pypi/setup-py';
 import { compareSemverVersions } from './utils/semver';
-import { readFileAtGitRef, resolveGitCompareRef } from './utils/git';
+import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from './utils/git';
 import { fetchJsonWithRetry } from './utils/http';
 import { extractVersionFromPattern, countCaptureGroups } from './utils/version-pattern';
 import { parseLocalPackageContent } from './ecosystems/ecosystem-registry';
@@ -85,6 +85,8 @@ export const internal = {
   parseSetupPy,
   PypiEcosystem,
   readFileAtGitRef,
+  listFilesAtGitRef,
+  resolveCompareFilePathAtGitRef,
   resolveGitCompareRef,
   CompareSource,
   CompareVersionRequest,
@@ -96,7 +98,7 @@ export async function run(): Promise<ActionOutputs> {
   const request = new CompareVersionRequest({
     cwd: process.cwd(),
     registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
-    compareSource: CompareSource.fromInput(core.getInput('compare-source') || 'registry'),
+    compareSource: CompareSource.fromInput(core.getInput('compare-source')),
     filePath: core.getInput('file-path', { required: true }).trim(),
     compareFilePath: core.getInput('compare-file-path').trim(),
     packageNameOverride: core.getInput('package-name').trim(),

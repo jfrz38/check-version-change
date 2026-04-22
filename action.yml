@@ -19,14 +19,14 @@ inputs:
   compare-source:
     description: 'Where to read the comparison version from: registry or git-ref'
     required: false
-    default: 'registry'
+    default: 'git-ref'
 
   compare-ref:
-    description: 'Git ref to compare against when compare-source=git-ref. If omitted on pull_request events, the action uses the base commit SHA.'
+    description: 'Git ref to compare against when compare-source=git-ref. If omitted, the action uses the pull request base SHA or base branch.'
     required: false
 
   compare-file-path:
-    description: 'Optional file path to read from the target ref when compare-source=git-ref. Defaults to file-path.'
+    description: 'Optional file path to read from the target ref when compare-source=git-ref. Defaults to file-path, and if that path does not exist the action searches the target ref for a file with the same name.'
     required: false
 
   version-pattern:

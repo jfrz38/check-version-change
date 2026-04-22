@@ -19,8 +19,8 @@ It supports:
 | `file-path` | Yes | - | Path to `package.json`, `pyproject.toml`, `setup.py`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `Cargo.toml`, or `go.mod` |
 | `package-name` | No | detected | Override the package name used for the registry lookup |
 | `registry` | No | `auto` | `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, or `go-proxy` |
-| `compare-source` | No | `registry` | `registry` or `git-ref` |
-| `compare-ref` | No | auto on PRs | Git ref to compare against when `compare-source=git-ref`. On `pull_request` events it defaults to the base commit SHA |
+| `compare-source` | No | `git-ref` | `git-ref` or `registry` |
+| `compare-ref` | No | auto on PRs | Git ref to compare against when `compare-source=git-ref`. On `pull_request` events it defaults to the base commit SHA or base branch |
 | `compare-file-path` | No | same as `file-path` | File path to read from the target ref when `compare-source=git-ref` |
 | `version-pattern` | No | - | Regex used to extract the local version from file contents. Must contain exactly one capture group |
 | `compare-semver` | No | `true` | Whether to compute `is-higher` using semver rules |
@@ -85,9 +85,25 @@ With `version-pattern`:
 
 ## Comparison Sources
 
-### Registry
+### Git ref
 
 This is the default mode.
+
+When `compare-source=git-ref`, the action reads a file from another Git ref in the local checkout, extracts its version with the same parser or `version-pattern`, and compares that version against the current workspace.
+
+Behavior:
+
+- if `compare-ref` is provided, that ref is used directly
+- if `compare-ref` is omitted on `pull_request` events, the action prefers the base commit SHA from the event payload and then the base branch
+- if `compare-file-path` is omitted, the action first tries the same value as `file-path`
+- if that path does not exist in the target ref, the action searches the target ref for a file with the same file name
+- if multiple matching file names are found, the action fails and asks for `compare-file-path`
+- if no pull request base information is available, the action requires `compare-ref`
+- the compared ref must already exist in the local checkout available to the workflow
+
+For CI jobs that compare against another branch, using `actions/checkout` with enough history is recommended, for example `fetch-depth: 0`.
+
+### Registry
 
 - npm -> `https://registry.npmjs.org/<package>` and reads `dist-tags.latest`
 - PyPI -> `https://pypi.org/pypi/<package>/json` and reads `info.version`
@@ -100,20 +116,6 @@ Behavior:
 - `404`, `401`, or `403` are treated as "package not found"
 - network failures are retried once
 - any other non-success response fails the action
-
-### Git ref
-
-When `compare-source=git-ref`, the action reads the same `file-path` from another Git ref in the local checkout, extracts its version with the same parser or `version-pattern`, and compares that version against the current workspace.
-
-Behavior:
-
-- if `compare-ref` is provided, that ref is used directly
-- if `compare-ref` is omitted on `pull_request` events, the action prefers the base commit SHA from the event payload
-- if `compare-file-path` is omitted, the action uses the same value as `file-path`
-- if no pull request base information is available, the action requires `compare-ref`
-- the compared ref must already exist in the local checkout available to the workflow
-
-For CI jobs that compare against another branch, using `actions/checkout` with enough history is recommended, for example `fetch-depth: 0`.
 
 ## Version Comparison Policy
 

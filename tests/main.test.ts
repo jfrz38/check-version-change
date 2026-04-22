@@ -33,7 +33,9 @@ const registryMock = vi.hoisted(() => ({
 }));
 
 const gitUtilsMock = vi.hoisted(() => ({
+  listFilesAtGitRef: vi.fn(),
   readFileAtGitRef: vi.fn(),
+  resolveCompareFilePathAtGitRef: vi.fn(),
   resolveGitCompareRef: vi.fn(),
 }));
 
@@ -57,12 +59,13 @@ describe('main', () => {
       version: { value: '1.1.0' },
     });
     gitUtilsMock.resolveGitCompareRef.mockReturnValue('base-sha-123');
+    gitUtilsMock.resolveCompareFilePathAtGitRef.mockImplementation((_cwd: string, filePath: string) => filePath);
     gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"name":"demo-package","version":"1.1.0"}');
 
     coreMock.getInput.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
         registry: 'auto',
-        'compare-source': 'git-ref',
+        'compare-source': '',
         'file-path': 'package.json',
         'compare-file-path': '',
         'package-name': '',
@@ -81,6 +84,7 @@ describe('main', () => {
     const result = await run();
 
     expect(gitUtilsMock.resolveGitCompareRef).toHaveBeenCalledWith('', githubMock.context);
+    expect(gitUtilsMock.resolveCompareFilePathAtGitRef).toHaveBeenCalled();
     expect(gitUtilsMock.readFileAtGitRef).toHaveBeenCalled();
     expect(registryMock.ecosystemRegistry.fetchPublishedVersion).not.toHaveBeenCalled();
     expect(result).toMatchObject({
@@ -124,10 +128,42 @@ describe('main', () => {
       expect.stringMatching(/packages[\\/]+shared[\\/]+package\.json$/),
       'base-sha-123',
     );
+    expect(gitUtilsMock.resolveCompareFilePathAtGitRef).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringMatching(/packages[\\/]+shared[\\/]+package\.json$/),
+      'base-sha-123',
+      true,
+    );
     expect(registryMock.parseLocalPackageContent).toHaveBeenCalledWith(
       expect.stringMatching(/packages[\\/]+shared[\\/]+package\.json$/),
       expect.any(String),
       undefined,
     );
+  });
+
+  it('still supports explicit registry comparison', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'registry',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': '',
+        'version-pattern': '',
+        'compare-semver': 'true',
+      };
+
+      return inputs[name] ?? '';
+    });
+    registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('1.1.9');
+
+    const { run } = await import('../src/main');
+    const result = await run();
+
+    expect(registryMock.ecosystemRegistry.fetchPublishedVersion).toHaveBeenCalled();
+    expect(gitUtilsMock.resolveCompareFilePathAtGitRef).not.toHaveBeenCalled();
+    expect(result.comparisonSourceDetected).toBe('registry');
+    expect(result.comparedVersion).toBe('1.1.9');
   });
 });

@@ -18,6 +18,7 @@ export class CompareVersionRequest {
   readonly cwd: string;
   readonly filePath: string;
   readonly compareFilePath: string;
+  readonly hasExplicitCompareFilePath: boolean;
   readonly packageNameOverride: string;
   readonly registry: RegistryInput;
   readonly compareSource: CompareSource;
@@ -28,6 +29,7 @@ export class CompareVersionRequest {
   constructor(props: CompareVersionRequestProps) {
     this.cwd = props.cwd;
     this.filePath = path.resolve(props.cwd, props.filePath);
+    this.hasExplicitCompareFilePath = Boolean(props.compareFilePath?.trim());
     this.compareFilePath = path.resolve(props.cwd, props.compareFilePath || props.filePath);
     this.packageNameOverride = props.packageNameOverride?.trim() || '';
     this.registry = props.registry;

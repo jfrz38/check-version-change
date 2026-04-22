@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { readFileAtGitRef, resolveGitCompareRef } from '../../src/utils/git';
+import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../../src/utils/git';
 
 describe('git utils', () => {
   it('prefers the explicit compare ref when provided', () => {
@@ -54,5 +54,32 @@ describe('git utils', () => {
     const filePath = path.resolve('/other/package.json');
 
     await expect(readFileAtGitRef(repoRoot, filePath, 'main')).rejects.toThrow(/must be inside the repository root/i);
+  });
+
+  it('lists files from a git ref', async () => {
+    const execFileImpl = vi.fn().mockResolvedValue({ stdout: 'package.json\napps/web/package.json\n', stderr: '' });
+
+    const result = await listFilesAtGitRef('/repo', 'main', { execFileImpl });
+
+    expect(result).toEqual(['package.json', 'apps/web/package.json']);
+  });
+
+  it('falls back to searching by file name when the same path does not exist', async () => {
+    const execFileImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('missing'))
+      .mockResolvedValueOnce({ stdout: 'apps/web/package.json\nREADME.md\n', stderr: '' });
+
+    const result = await resolveCompareFilePathAtGitRef('/repo', '/repo/package.json', 'main', false, { execFileImpl });
+
+    expect(result).toBe(path.resolve('/repo', 'apps/web/package.json'));
+  });
+
+  it('does not search alternative paths when compare-file-path is explicit', async () => {
+    const execFileImpl = vi.fn().mockRejectedValue(new Error('missing'));
+
+    await expect(
+      resolveCompareFilePathAtGitRef('/repo', '/repo/package.json', 'main', true, { execFileImpl }),
+    ).rejects.toThrow(/missing/i);
   });
 });

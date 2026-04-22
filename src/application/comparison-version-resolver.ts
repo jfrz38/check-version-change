@@ -1,7 +1,7 @@
 import * as github from '@actions/github';
 import { ecosystemRegistry } from '../ecosystems/ecosystem-registry';
 import { parseLocalPackageContent } from '../ecosystems/ecosystem-registry';
-import { readFileAtGitRef, resolveGitCompareRef } from '../utils/git';
+import { readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../utils/git';
 import type { SupportedRegistry } from '../types';
 import type { CompareVersionRequest } from './compare-version-request';
 
@@ -30,13 +30,19 @@ export async function resolveComparisonVersion(
   }
 
   const compareRefResolved = resolveGitCompareRef(request.compareRef, github.context);
-  const compareContent = await readFileAtGitRef(request.cwd, request.compareFilePath, compareRefResolved);
-  const comparedPackage = await parseLocalPackageContent(request.compareFilePath, compareContent, request.versionPattern);
+  const compareFilePathResolved = await resolveCompareFilePathAtGitRef(
+    request.cwd,
+    request.compareFilePath,
+    compareRefResolved,
+    request.hasExplicitCompareFilePath,
+  );
+  const compareContent = await readFileAtGitRef(request.cwd, compareFilePathResolved, compareRefResolved);
+  const comparedPackage = await parseLocalPackageContent(compareFilePathResolved, compareContent, request.versionPattern);
 
   return {
     comparedVersion: comparedPackage.version.value,
     registryDetected: '',
     compareRefResolved,
-    compareFilePathResolved: request.compareFilePath,
+    compareFilePathResolved,
   };
 }
