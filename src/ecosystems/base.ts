@@ -21,6 +21,10 @@ export abstract class BaseEcosystemHandler implements EcosystemHandler {
 
   async parseLocalPackage(filePath: string, versionPattern?: string): Promise<LocalPackage> {
     const content = await readFile(filePath, 'utf8');
+    return this.parseLocalPackageContent(filePath, content, versionPattern);
+  }
+
+  async parseLocalPackageContent(filePath: string, content: string, versionPattern?: string): Promise<LocalPackage> {
     const parsed = await this.parseFromFile(filePath, content);
 
     if (versionPattern) {

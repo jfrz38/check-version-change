@@ -1069,14 +1069,14 @@ var require_util = __commonJS({
         }
         const port = url.port != null ? url.port : url.protocol === "https:" ? 443 : 80;
         let origin = url.origin != null ? url.origin : `${url.protocol || ""}//${url.hostname || ""}:${port}`;
-        let path6 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
+        let path7 = url.path != null ? url.path : `${url.pathname || ""}${url.search || ""}`;
         if (origin[origin.length - 1] === "/") {
           origin = origin.slice(0, origin.length - 1);
         }
-        if (path6 && path6[0] !== "/") {
-          path6 = `/${path6}`;
+        if (path7 && path7[0] !== "/") {
+          path7 = `/${path7}`;
         }
-        return new URL(`${origin}${path6}`);
+        return new URL(`${origin}${path7}`);
       }
       if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
         throw new InvalidArgumentError("Invalid URL protocol: the URL must start with `http:` or `https:`.");
@@ -1527,39 +1527,39 @@ var require_diagnostics = __commonJS({
       });
       diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin }
+          request: { method, path: path7, origin }
         } = evt;
-        debuglog("sending request to %s %s/%s", method, origin, path6);
+        debuglog("sending request to %s %s/%s", method, origin, path7);
       });
       diagnosticsChannel.channel("undici:request:headers").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin },
+          request: { method, path: path7, origin },
           response: { statusCode }
         } = evt;
         debuglog(
           "received response to %s %s/%s - HTTP %d",
           method,
           origin,
-          path6,
+          path7,
           statusCode
         );
       });
       diagnosticsChannel.channel("undici:request:trailers").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin }
+          request: { method, path: path7, origin }
         } = evt;
-        debuglog("trailers received from %s %s/%s", method, origin, path6);
+        debuglog("trailers received from %s %s/%s", method, origin, path7);
       });
       diagnosticsChannel.channel("undici:request:error").subscribe((evt) => {
         const {
-          request: { method, path: path6, origin },
+          request: { method, path: path7, origin },
           error: error2
         } = evt;
         debuglog(
           "request to %s %s/%s errored - %s",
           method,
           origin,
-          path6,
+          path7,
           error2.message
         );
       });
@@ -1608,9 +1608,9 @@ var require_diagnostics = __commonJS({
         });
         diagnosticsChannel.channel("undici:client:sendHeaders").subscribe((evt) => {
           const {
-            request: { method, path: path6, origin }
+            request: { method, path: path7, origin }
           } = evt;
-          debuglog("sending request to %s %s/%s", method, origin, path6);
+          debuglog("sending request to %s %s/%s", method, origin, path7);
         });
       }
       diagnosticsChannel.channel("undici:websocket:open").subscribe((evt) => {
@@ -1673,7 +1673,7 @@ var require_request = __commonJS({
     var kHandler = /* @__PURE__ */ Symbol("handler");
     var Request = class {
       constructor(origin, {
-        path: path6,
+        path: path7,
         method,
         body,
         headers,
@@ -1688,11 +1688,11 @@ var require_request = __commonJS({
         expectContinue,
         servername
       }, handler2) {
-        if (typeof path6 !== "string") {
+        if (typeof path7 !== "string") {
           throw new InvalidArgumentError("path must be a string");
-        } else if (path6[0] !== "/" && !(path6.startsWith("http://") || path6.startsWith("https://")) && method !== "CONNECT") {
+        } else if (path7[0] !== "/" && !(path7.startsWith("http://") || path7.startsWith("https://")) && method !== "CONNECT") {
           throw new InvalidArgumentError("path must be an absolute URL or start with a slash");
-        } else if (invalidPathRegex.test(path6)) {
+        } else if (invalidPathRegex.test(path7)) {
           throw new InvalidArgumentError("invalid request path");
         }
         if (typeof method !== "string") {
@@ -1758,7 +1758,7 @@ var require_request = __commonJS({
         this.completed = false;
         this.aborted = false;
         this.upgrade = upgrade || null;
-        this.path = query ? buildURL(path6, query) : path6;
+        this.path = query ? buildURL(path7, query) : path7;
         this.origin = origin;
         this.idempotent = idempotent == null ? method === "HEAD" || method === "GET" : idempotent;
         this.blocking = blocking == null ? false : blocking;
@@ -6284,7 +6284,7 @@ var require_client_h1 = __commonJS({
       return method !== "GET" && method !== "HEAD" && method !== "OPTIONS" && method !== "TRACE" && method !== "CONNECT";
     }
     function writeH1(client, request2) {
-      const { method, path: path6, host, upgrade, blocking, reset } = request2;
+      const { method, path: path7, host, upgrade, blocking, reset } = request2;
       let { body, headers, contentLength } = request2;
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH" || method === "QUERY" || method === "PROPFIND" || method === "PROPPATCH";
       if (util.isFormDataLike(body)) {
@@ -6350,7 +6350,7 @@ var require_client_h1 = __commonJS({
       if (blocking) {
         socket[kBlocking] = true;
       }
-      let header = `${method} ${path6} HTTP/1.1\r
+      let header = `${method} ${path7} HTTP/1.1\r
 `;
       if (typeof host === "string") {
         header += `host: ${host}\r
@@ -6876,7 +6876,7 @@ var require_client_h2 = __commonJS({
     }
     function writeH2(client, request2) {
       const session = client[kHTTP2Session];
-      const { method, path: path6, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
+      const { method, path: path7, host, upgrade, expectContinue, signal, headers: reqHeaders } = request2;
       let { body } = request2;
       if (upgrade) {
         util.errorRequest(client, request2, new Error("Upgrade not supported for H2"));
@@ -6943,7 +6943,7 @@ var require_client_h2 = __commonJS({
         });
         return true;
       }
-      headers[HTTP2_HEADER_PATH] = path6;
+      headers[HTTP2_HEADER_PATH] = path7;
       headers[HTTP2_HEADER_SCHEME] = "https";
       const expectsPayload = method === "PUT" || method === "POST" || method === "PATCH";
       if (body && typeof body.read === "function") {
@@ -7296,9 +7296,9 @@ var require_redirect_handler = __commonJS({
           return this.handler.onHeaders(statusCode, headers, resume, statusText);
         }
         const { origin, pathname, search } = util.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
-        const path6 = search ? `${pathname}${search}` : pathname;
+        const path7 = search ? `${pathname}${search}` : pathname;
         this.opts.headers = cleanRequestHeaders(this.opts.headers, statusCode === 303, this.opts.origin !== origin);
-        this.opts.path = path6;
+        this.opts.path = path7;
         this.opts.origin = origin;
         this.opts.maxRedirections = 0;
         this.opts.query = null;
@@ -8533,10 +8533,10 @@ var require_proxy_agent = __commonJS({
         };
         const {
           origin,
-          path: path6 = "/",
+          path: path7 = "/",
           headers = {}
         } = opts;
-        opts.path = origin + path6;
+        opts.path = origin + path7;
         if (!("host" in headers) && !("Host" in headers)) {
           const { host } = new URL2(origin);
           headers.host = host;
@@ -10457,20 +10457,20 @@ var require_mock_utils = __commonJS({
       }
       return true;
     }
-    function safeUrl(path6) {
-      if (typeof path6 !== "string") {
-        return path6;
+    function safeUrl(path7) {
+      if (typeof path7 !== "string") {
+        return path7;
       }
-      const pathSegments = path6.split("?");
+      const pathSegments = path7.split("?");
       if (pathSegments.length !== 2) {
-        return path6;
+        return path7;
       }
       const qp = new URLSearchParams(pathSegments.pop());
       qp.sort();
       return [...pathSegments, qp.toString()].join("?");
     }
-    function matchKey(mockDispatch2, { path: path6, method, body, headers }) {
-      const pathMatch = matchValue(mockDispatch2.path, path6);
+    function matchKey(mockDispatch2, { path: path7, method, body, headers }) {
+      const pathMatch = matchValue(mockDispatch2.path, path7);
       const methodMatch = matchValue(mockDispatch2.method, method);
       const bodyMatch = typeof mockDispatch2.body !== "undefined" ? matchValue(mockDispatch2.body, body) : true;
       const headersMatch = matchHeaders(mockDispatch2, headers);
@@ -10492,7 +10492,7 @@ var require_mock_utils = __commonJS({
     function getMockDispatch(mockDispatches, key) {
       const basePath = key.query ? buildURL(key.path, key.query) : key.path;
       const resolvedPath = typeof basePath === "string" ? safeUrl(basePath) : basePath;
-      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path6 }) => matchValue(safeUrl(path6), resolvedPath));
+      let matchedMockDispatches = mockDispatches.filter(({ consumed }) => !consumed).filter(({ path: path7 }) => matchValue(safeUrl(path7), resolvedPath));
       if (matchedMockDispatches.length === 0) {
         throw new MockNotMatchedError(`Mock dispatch not matched for path '${resolvedPath}'`);
       }
@@ -10530,9 +10530,9 @@ var require_mock_utils = __commonJS({
       }
     }
     function buildKey(opts) {
-      const { path: path6, method, body, headers, query } = opts;
+      const { path: path7, method, body, headers, query } = opts;
       return {
-        path: path6,
+        path: path7,
         method,
         body,
         headers,
@@ -10838,7 +10838,7 @@ var require_mock_interceptor = __commonJS({
 var require_mock_client = __commonJS({
   "node_modules/.pnpm/undici@6.25.0/node_modules/undici/lib/mock/mock-client.js"(exports2, module2) {
     "use strict";
-    var { promisify } = require("node:util");
+    var { promisify: promisify2 } = require("node:util");
     var Client = require_client();
     var { buildMockDispatch } = require_mock_utils();
     var {
@@ -10878,7 +10878,7 @@ var require_mock_client = __commonJS({
         return new MockInterceptor(opts, this[kDispatches]);
       }
       async [kClose]() {
-        await promisify(this[kOriginalClose])();
+        await promisify2(this[kOriginalClose])();
         this[kConnected] = 0;
         this[kMockAgent][Symbols.kClients].delete(this[kOrigin]);
       }
@@ -10891,7 +10891,7 @@ var require_mock_client = __commonJS({
 var require_mock_pool = __commonJS({
   "node_modules/.pnpm/undici@6.25.0/node_modules/undici/lib/mock/mock-pool.js"(exports2, module2) {
     "use strict";
-    var { promisify } = require("node:util");
+    var { promisify: promisify2 } = require("node:util");
     var Pool = require_pool();
     var { buildMockDispatch } = require_mock_utils();
     var {
@@ -10931,7 +10931,7 @@ var require_mock_pool = __commonJS({
         return new MockInterceptor(opts, this[kDispatches]);
       }
       async [kClose]() {
-        await promisify(this[kOriginalClose])();
+        await promisify2(this[kOriginalClose])();
         this[kConnected] = 0;
         this[kMockAgent][Symbols.kClients].delete(this[kOrigin]);
       }
@@ -10995,10 +10995,10 @@ var require_pending_interceptors_formatter = __commonJS({
       }
       format(pendingInterceptors) {
         const withPrettyHeaders = pendingInterceptors.map(
-          ({ method, path: path6, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
+          ({ method, path: path7, data: { statusCode }, persist, times, timesInvoked, origin }) => ({
             Method: method,
             Origin: origin,
-            Path: path6,
+            Path: path7,
             "Status code": statusCode,
             Persistent: persist ? PERSISTENT : NOT_PERSISTENT,
             Invocations: timesInvoked,
@@ -15879,9 +15879,9 @@ var require_util6 = __commonJS({
         }
       }
     }
-    function validateCookiePath(path6) {
-      for (let i = 0; i < path6.length; ++i) {
-        const code = path6.charCodeAt(i);
+    function validateCookiePath(path7) {
+      for (let i = 0; i < path7.length; ++i) {
+        const code = path7.charCodeAt(i);
         if (code < 32 || // exclude CTLs (0-31)
         code === 127 || // DEL
         code === 59) {
@@ -18558,11 +18558,11 @@ var require_undici = __commonJS({
           if (typeof opts.path !== "string") {
             throw new InvalidArgumentError("invalid opts.path");
           }
-          let path6 = opts.path;
+          let path7 = opts.path;
           if (!opts.path.startsWith("/")) {
-            path6 = `/${path6}`;
+            path7 = `/${path7}`;
           }
-          url = new URL(util.parseOrigin(url).origin + path6);
+          url = new URL(util.parseOrigin(url).origin + path7);
         } else {
           if (!opts) {
             opts = typeof url === "object" ? url : {};
@@ -21945,8 +21945,8 @@ var Context = class {
       if ((0, import_fs2.existsSync)(process.env.GITHUB_EVENT_PATH)) {
         this.payload = JSON.parse((0, import_fs2.readFileSync)(process.env.GITHUB_EVENT_PATH, { encoding: "utf8" }));
       } else {
-        const path6 = process.env.GITHUB_EVENT_PATH;
-        process.stdout.write(`GITHUB_EVENT_PATH ${path6} does not exist${import_os3.EOL}`);
+        const path7 = process.env.GITHUB_EVENT_PATH;
+        process.stdout.write(`GITHUB_EVENT_PATH ${path7} does not exist${import_os3.EOL}`);
       }
     }
     this.eventName = process.env.GITHUB_EVENT_NAME;
@@ -25640,7 +25640,7 @@ var GitHub = Octokit.plugin(restEndpointMethods, paginateRest).defaults(defaults
 var context2 = new Context();
 
 // src/main.ts
-var import_node_path5 = __toESM(require("node:path"));
+var import_node_path6 = __toESM(require("node:path"));
 
 // src/domain/value-objects/package-name.ts
 var PackageName = class {
@@ -25757,6 +25757,9 @@ var BaseEcosystemHandler = class {
   }
   async parseLocalPackage(filePath, versionPattern) {
     const content = await (0, import_promises.readFile)(filePath, "utf8");
+    return this.parseLocalPackageContent(filePath, content, versionPattern);
+  }
+  async parseLocalPackageContent(filePath, content, versionPattern) {
     const parsed = await this.parseFromFile(filePath, content);
     if (versionPattern) {
       return new LocalPackage(
@@ -25941,9 +25944,9 @@ function parseToml(content) {
   }
   return root;
 }
-function getTomlString(table, path6) {
+function getTomlString(table, path7) {
   let current = table;
-  for (const part of path6) {
+  for (const part of path7) {
     if (!current || typeof current !== "object" || Array.isArray(current) || !(part in current)) {
       return void 0;
     }
@@ -27016,6 +27019,9 @@ var EcosystemRegistry = class {
   parseLocalPackageFile(filePath, versionPattern) {
     return this.getHandlerForFile(filePath).parseLocalPackage(filePath, versionPattern);
   }
+  parseLocalPackageContent(filePath, content, versionPattern) {
+    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
+  }
   fetchPublishedVersion(registry, packageName, options) {
     return this.getHandlerForRegistry(registry).fetchPublishedVersion(packageName, options);
   }
@@ -27047,6 +27053,9 @@ function detectRegistryFromFile(filePath) {
 function parseLocalPackageFile(filePath, versionPattern) {
   return ecosystemRegistry.parseLocalPackageFile(filePath, versionPattern);
 }
+function parseLocalPackageContent(filePath, content, versionPattern) {
+  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
+}
 
 // src/utils/semver.ts
 var semver2 = __toESM(require_semver2());
@@ -27064,6 +27073,46 @@ function compareSemverVersions(localVersion, publishedVersion) {
     comparable: true,
     isHigher: semver2.gt(normalizedLocal, normalizedPublished)
   };
+}
+
+// src/utils/git.ts
+var import_node_child_process = require("node:child_process");
+var import_node_path5 = __toESM(require("node:path"));
+var import_node_util = require("node:util");
+var execFileAsync = (0, import_node_util.promisify)(import_node_child_process.execFile);
+function resolveGitCompareRef(rawCompareRef, context3) {
+  const explicitCompareRef = rawCompareRef.trim();
+  if (explicitCompareRef) {
+    return explicitCompareRef;
+  }
+  const pullRequestBaseSha = context3.payload.pull_request?.base?.sha?.trim();
+  if (pullRequestBaseSha) {
+    return pullRequestBaseSha;
+  }
+  const pullRequestBaseRef = context3.payload.pull_request?.base?.ref?.trim();
+  if (pullRequestBaseRef) {
+    return pullRequestBaseRef;
+  }
+  throw new Error('Input "compare-ref" is required when compare-source="git-ref" outside pull_request contexts.');
+}
+async function readFileAtGitRef(repoRoot, filePath, gitRef, options = {}) {
+  const relativePath = import_node_path5.default.relative(repoRoot, filePath);
+  if (!relativePath || relativePath.startsWith("..") || import_node_path5.default.isAbsolute(relativePath)) {
+    throw new Error(`File "${filePath}" must be inside the repository root "${repoRoot}".`);
+  }
+  const normalizedPath = relativePath.split(import_node_path5.default.sep).join("/");
+  const execFileImpl = options.execFileImpl ?? execFileAsync;
+  try {
+    const { stdout } = await execFileImpl("git", ["show", `${gitRef}:${normalizedPath}`], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 5
+    });
+    return stdout;
+  } catch (error2) {
+    const suffix = error2 instanceof Error ? error2.message : String(error2);
+    throw new Error(`Unable to read "${normalizedPath}" from git ref "${gitRef}": ${suffix}`);
+  }
 }
 
 // src/main.ts
@@ -27090,6 +27139,16 @@ function resolveRegistry(inputRegistry, filePath) {
   }
   return inputRegistry;
 }
+function resolveCompareSource(compareSource) {
+  const normalized = compareSource.trim().toLowerCase();
+  if (!normalized || normalized === "registry") {
+    return "registry";
+  }
+  if (normalized === "git-ref") {
+    return "git-ref";
+  }
+  throw new Error(`Unsupported compare-source "${compareSource}". Expected "registry" or "git-ref".`);
+}
 async function fetchPublishedVersion(registry, packageName) {
   const userAgent2 = `check-version-change/${context2.runId || "local"}`;
   const headers = { "user-agent": userAgent2 };
@@ -27098,10 +27157,14 @@ async function fetchPublishedVersion(registry, packageName) {
 function setOutputs(outputs) {
   setOutput("changed", String(outputs.changed));
   setOutput("local-version", outputs.localVersion);
+  setOutput("compared-version", outputs.comparedVersion);
   setOutput("published-version", outputs.publishedVersion);
   setOutput("is-higher", String(outputs.isHigher));
   setOutput("registry-detected", outputs.registryDetected);
   setOutput("package-name-detected", outputs.packageNameDetected);
+  setOutput("comparison-source-detected", outputs.comparisonSourceDetected);
+  setOutput("compare-ref-resolved", outputs.compareRefResolved);
+  setOutput("compare-file-path-resolved", outputs.compareFilePathResolved);
 }
 var internal = {
   compareSemverVersions,
@@ -27122,19 +27185,27 @@ var internal = {
   NpmEcosystem,
   parseCargoToml,
   parseGoMod,
+  parseLocalPackageContent,
   parseLocalPackageFile,
   parseGradleBuildFile,
   parsePackageJson,
   parsePomXml,
   parsePyProjectToml,
   parseSetupPy,
-  PypiEcosystem
+  PypiEcosystem,
+  readFileAtGitRef,
+  resolveGitCompareRef,
+  resolveCompareSource
 };
 async function run() {
   const rawRegistry = (getInput("registry") || "auto").trim().toLowerCase();
+  const compareSource = resolveCompareSource(getInput("compare-source") || "registry");
   const relativeFilePath = getInput("file-path", { required: true }).trim();
-  const filePath = import_node_path5.default.resolve(process.cwd(), relativeFilePath);
+  const filePath = import_node_path6.default.resolve(process.cwd(), relativeFilePath);
+  const relativeCompareFilePath = getInput("compare-file-path").trim();
+  const compareFilePath = import_node_path6.default.resolve(process.cwd(), relativeCompareFilePath || relativeFilePath);
   const packageNameOverride = getInput("package-name").trim();
+  const compareRef = getInput("compare-ref").trim();
   const versionPattern = getInput("version-pattern").trim();
   const compareSemver = getBooleanInput("compare-semver", true);
   const registryDetected = resolveRegistry(rawRegistry, filePath);
@@ -27143,11 +27214,23 @@ async function run() {
   if (!packageNameDetected) {
     throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
   }
-  const publishedVersion = await fetchPublishedVersion(registryDetected, packageNameDetected);
-  const changed = !publishedVersion || localPackage.version.value !== publishedVersion;
+  let comparedVersion = "";
+  let compareRefResolved = "";
+  let compareFilePathResolved = "";
+  if (compareSource === "registry") {
+    comparedVersion = await fetchPublishedVersion(registryDetected, packageNameDetected);
+  } else {
+    compareRefResolved = resolveGitCompareRef(compareRef, context2);
+    compareFilePathResolved = compareFilePath;
+    const compareContent = await readFileAtGitRef(process.cwd(), compareFilePath, compareRefResolved);
+    const comparedPackage = await parseLocalPackageContent(compareFilePath, compareContent, versionPattern || void 0);
+    comparedVersion = comparedPackage.version.value;
+  }
+  const publishedVersion = comparedVersion;
+  const changed = !comparedVersion || localPackage.version.value !== comparedVersion;
   let isHigher = false;
-  if (publishedVersion && compareSemver) {
-    const comparison = compareSemverVersions(localPackage.version.value, publishedVersion);
+  if (comparedVersion && compareSemver) {
+    const comparison = compareSemverVersions(localPackage.version.value, comparedVersion);
     isHigher = comparison.isHigher;
     if (!comparison.comparable && comparison.reason) {
       warning(`Semver comparison skipped: ${comparison.reason}`);
@@ -27156,10 +27239,14 @@ async function run() {
   const outputs = {
     changed,
     localVersion: localPackage.version.value,
+    comparedVersion,
     publishedVersion,
     isHigher,
-    registryDetected,
-    packageNameDetected
+    registryDetected: compareSource === "registry" ? registryDetected : "",
+    packageNameDetected,
+    comparisonSourceDetected: compareSource,
+    compareRefResolved,
+    compareFilePathResolved
   };
   setOutputs(outputs);
   return outputs;

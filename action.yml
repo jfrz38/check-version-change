@@ -16,6 +16,19 @@ inputs:
     required: false
     default: 'auto'
 
+  compare-source:
+    description: 'Where to read the comparison version from: registry or git-ref'
+    required: false
+    default: 'registry'
+
+  compare-ref:
+    description: 'Git ref to compare against when compare-source=git-ref. If omitted on pull_request events, the action uses the base commit SHA.'
+    required: false
+
+  compare-file-path:
+    description: 'Optional file path to read from the target ref when compare-source=git-ref. Defaults to file-path.'
+    required: false
+
   version-pattern:
     description: 'Custom regex used to extract the local version from the file contents. Must contain exactly one capture group.'
     required: false
@@ -32,17 +45,29 @@ outputs:
   local-version:
     description: 'Version detected in the repository file'
 
+  compared-version:
+    description: 'Version used as the comparison target, from the selected compare source'
+
   published-version:
-    description: 'Version detected in the registry, or an empty string when the package is not found'
+    description: 'Legacy alias for compared-version. With compare-source=registry it is the published version; with compare-source=git-ref it is the version read from the target ref'
 
   is-higher:
-    description: 'true when compare-semver is enabled and the local version is semver-greater than the published version'
+    description: 'true when compare-semver is enabled and the local version is semver-greater than the compared version'
 
   registry-detected:
-    description: 'Registry used for the lookup'
+    description: 'Registry used for the lookup when compare-source=registry, otherwise an empty string'
 
   package-name-detected:
     description: 'Package name used for the lookup'
+
+  comparison-source-detected:
+    description: 'Comparison source used by the action'
+
+  compare-ref-resolved:
+    description: 'Resolved Git ref used when compare-source=git-ref, otherwise an empty string'
+
+  compare-file-path-resolved:
+    description: 'Resolved file path used when compare-source=git-ref, otherwise an empty string'
 
 runs:
   using: 'node20'
