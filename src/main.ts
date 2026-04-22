@@ -1,7 +1,5 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
-import path from 'node:path';
-import type { ActionOutputs, RegistryInput, SupportedRegistry } from './types';
+import type { ActionOutputs } from './types';
 import { CargoEcosystem } from './ecosystems/cargo/ecosystem';
 import { parseCargoToml } from './ecosystems/cargo/parser';
 import { fetchCratesIoPublishedVersion } from './ecosystems/cargo/registry';
@@ -25,7 +23,9 @@ import { readFileAtGitRef, resolveGitCompareRef } from './utils/git';
 import { fetchJsonWithRetry } from './utils/http';
 import { extractVersionFromPattern, countCaptureGroups } from './utils/version-pattern';
 import { parseLocalPackageContent } from './ecosystems/ecosystem-registry';
-import type { CompareSource } from './types';
+import { CompareVersionRequest } from './application/compare-version-request';
+import { compareVersion, executeCompareVersion } from './application/compare-version-use-case';
+import { CompareSource } from './domain/value-objects/compare-source';
 
 function getBooleanInput(name: string, defaultValue: boolean): boolean {
   const rawValue = core.getInput(name);
@@ -42,37 +42,6 @@ function getBooleanInput(name: string, defaultValue: boolean): boolean {
   }
 
   throw new Error(`Input "${name}" must be either "true" or "false".`);
-}
-
-function resolveRegistry(inputRegistry: RegistryInput, filePath: string): SupportedRegistry {
-  if (inputRegistry === 'auto') {
-    return detectRegistryFromFile(filePath);
-  }
-
-  if (inputRegistry !== 'npm' && inputRegistry !== 'pypi' && inputRegistry !== 'maven-central' && inputRegistry !== 'crates-io' && inputRegistry !== 'go-proxy') {
-    throw new Error(`Unsupported registry "${inputRegistry}". Expected "auto", "npm", "pypi", "maven-central", "crates-io", or "go-proxy".`);
-  }
-
-  return inputRegistry;
-}
-
-function resolveCompareSource(compareSource: string): CompareSource {
-  const normalized = compareSource.trim().toLowerCase();
-  if (!normalized || normalized === 'registry') {
-    return 'registry';
-  }
-
-  if (normalized === 'git-ref') {
-    return 'git-ref';
-  }
-
-  throw new Error(`Unsupported compare-source "${compareSource}". Expected "registry" or "git-ref".`);
-}
-
-async function fetchPublishedVersion(registry: SupportedRegistry, packageName: string): Promise<string> {
-  const userAgent = `check-version-change/${github.context.runId || 'local'}`;
-  const headers = { 'user-agent': userAgent };
-  return ecosystemRegistry.fetchPublishedVersion(registry, packageName, { headers });
 }
 
 function setOutputs(outputs: ActionOutputs): void {
@@ -117,68 +86,29 @@ export const internal = {
   PypiEcosystem,
   readFileAtGitRef,
   resolveGitCompareRef,
-  resolveCompareSource,
+  CompareSource,
+  CompareVersionRequest,
+  compareVersion,
+  executeCompareVersion,
 };
 
 export async function run(): Promise<ActionOutputs> {
-  const rawRegistry = (core.getInput('registry') || 'auto').trim().toLowerCase() as RegistryInput;
-  const compareSource = resolveCompareSource(core.getInput('compare-source') || 'registry');
-  const relativeFilePath = core.getInput('file-path', { required: true }).trim();
-  const filePath = path.resolve(process.cwd(), relativeFilePath);
-  const relativeCompareFilePath = core.getInput('compare-file-path').trim();
-  const compareFilePath = path.resolve(process.cwd(), relativeCompareFilePath || relativeFilePath);
-  const packageNameOverride = core.getInput('package-name').trim();
-  const compareRef = core.getInput('compare-ref').trim();
-  const versionPattern = core.getInput('version-pattern').trim();
-  const compareSemver = getBooleanInput('compare-semver', true);
-
-  const registryDetected = resolveRegistry(rawRegistry, filePath);
-  const localPackage = await parseLocalPackageFile(filePath, versionPattern || undefined);
-  const packageNameDetected = packageNameOverride || localPackage.packageName.value;
-
-  if (!packageNameDetected) {
-    throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+  const request = new CompareVersionRequest({
+    cwd: process.cwd(),
+    registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
+    compareSource: CompareSource.fromInput(core.getInput('compare-source') || 'registry'),
+    filePath: core.getInput('file-path', { required: true }).trim(),
+    compareFilePath: core.getInput('compare-file-path').trim(),
+    packageNameOverride: core.getInput('package-name').trim(),
+    compareRef: core.getInput('compare-ref').trim(),
+    versionPattern: core.getInput('version-pattern').trim(),
+    compareSemver: getBooleanInput('compare-semver', true),
+  });
+  const result = await executeCompareVersion(request);
+  if (result.warning) {
+    core.warning(`Semver comparison skipped: ${result.warning}`);
   }
-
-  let comparedVersion = '';
-  let compareRefResolved = '';
-  let compareFilePathResolved = '';
-
-  if (compareSource === 'registry') {
-    comparedVersion = await fetchPublishedVersion(registryDetected, packageNameDetected);
-  } else {
-    compareRefResolved = resolveGitCompareRef(compareRef, github.context);
-    compareFilePathResolved = compareFilePath;
-    const compareContent = await readFileAtGitRef(process.cwd(), compareFilePath, compareRefResolved);
-    const comparedPackage = await parseLocalPackageContent(compareFilePath, compareContent, versionPattern || undefined);
-    comparedVersion = comparedPackage.version.value;
-  }
-
-  const publishedVersion = comparedVersion;
-  const changed = !comparedVersion || localPackage.version.value !== comparedVersion;
-
-  let isHigher = false;
-  if (comparedVersion && compareSemver) {
-    const comparison = compareSemverVersions(localPackage.version.value, comparedVersion);
-    isHigher = comparison.isHigher;
-
-    if (!comparison.comparable && comparison.reason) {
-      core.warning(`Semver comparison skipped: ${comparison.reason}`);
-    }
-  }
-
-  const outputs: ActionOutputs = {
-    changed,
-    localVersion: localPackage.version.value,
-    comparedVersion,
-    publishedVersion,
-    isHigher,
-    registryDetected: compareSource === 'registry' ? registryDetected : '',
-    packageNameDetected,
-    comparisonSourceDetected: compareSource,
-    compareRefResolved,
-    compareFilePathResolved,
-  };
+  const outputs = result.outputs;
 
   setOutputs(outputs);
   return outputs;

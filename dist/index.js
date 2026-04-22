@@ -18633,874 +18633,6 @@ var require_undici = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/proxy.js
-var require_proxy = __commonJS({
-  "node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/proxy.js"(exports2) {
-    "use strict";
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.getProxyUrl = getProxyUrl2;
-    exports2.checkBypass = checkBypass;
-    function getProxyUrl2(reqUrl) {
-      const usingSsl = reqUrl.protocol === "https:";
-      if (checkBypass(reqUrl)) {
-        return void 0;
-      }
-      const proxyVar = (() => {
-        if (usingSsl) {
-          return process.env["https_proxy"] || process.env["HTTPS_PROXY"];
-        } else {
-          return process.env["http_proxy"] || process.env["HTTP_PROXY"];
-        }
-      })();
-      if (proxyVar) {
-        try {
-          return new DecodedURL(proxyVar);
-        } catch (_a) {
-          if (!proxyVar.startsWith("http://") && !proxyVar.startsWith("https://"))
-            return new DecodedURL(`http://${proxyVar}`);
-        }
-      } else {
-        return void 0;
-      }
-    }
-    function checkBypass(reqUrl) {
-      if (!reqUrl.hostname) {
-        return false;
-      }
-      const reqHost = reqUrl.hostname;
-      if (isLoopbackAddress(reqHost)) {
-        return true;
-      }
-      const noProxy = process.env["no_proxy"] || process.env["NO_PROXY"] || "";
-      if (!noProxy) {
-        return false;
-      }
-      let reqPort;
-      if (reqUrl.port) {
-        reqPort = Number(reqUrl.port);
-      } else if (reqUrl.protocol === "http:") {
-        reqPort = 80;
-      } else if (reqUrl.protocol === "https:") {
-        reqPort = 443;
-      }
-      const upperReqHosts = [reqUrl.hostname.toUpperCase()];
-      if (typeof reqPort === "number") {
-        upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
-      }
-      for (const upperNoProxyItem of noProxy.split(",").map((x) => x.trim().toUpperCase()).filter((x) => x)) {
-        if (upperNoProxyItem === "*" || upperReqHosts.some((x) => x === upperNoProxyItem || x.endsWith(`.${upperNoProxyItem}`) || upperNoProxyItem.startsWith(".") && x.endsWith(`${upperNoProxyItem}`))) {
-          return true;
-        }
-      }
-      return false;
-    }
-    function isLoopbackAddress(host) {
-      const hostLower = host.toLowerCase();
-      return hostLower === "localhost" || hostLower.startsWith("127.") || hostLower.startsWith("[::1]") || hostLower.startsWith("[0:0:0:0:0:0:0:1]");
-    }
-    var DecodedURL = class extends URL {
-      constructor(url, base) {
-        super(url, base);
-        this._decodedUsername = decodeURIComponent(super.username);
-        this._decodedPassword = decodeURIComponent(super.password);
-      }
-      get username() {
-        return this._decodedUsername;
-      }
-      get password() {
-        return this._decodedPassword;
-      }
-    };
-  }
-});
-
-// node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js
-var require_lib = __commonJS({
-  "node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js"(exports2) {
-    "use strict";
-    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      var desc = Object.getOwnPropertyDescriptor(m, k);
-      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-        desc = { enumerable: true, get: function() {
-          return m[k];
-        } };
-      }
-      Object.defineProperty(o, k2, desc);
-    }) : (function(o, m, k, k2) {
-      if (k2 === void 0) k2 = k;
-      o[k2] = m[k];
-    }));
-    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
-      Object.defineProperty(o, "default", { enumerable: true, value: v });
-    }) : function(o, v) {
-      o["default"] = v;
-    });
-    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
-      var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function(o2) {
-          var ar = [];
-          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
-          return ar;
-        };
-        return ownKeys(o);
-      };
-      return function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) {
-          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        }
-        __setModuleDefault(result, mod);
-        return result;
-      };
-    })();
-    var __awaiter3 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
-      function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve) {
-          resolve(value);
-        });
-      }
-      return new (P || (P = Promise))(function(resolve, reject) {
-        function fulfilled(value) {
-          try {
-            step(generator.next(value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function rejected(value) {
-          try {
-            step(generator["throw"](value));
-          } catch (e) {
-            reject(e);
-          }
-        }
-        function step(result) {
-          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
-        }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-      });
-    };
-    Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.HttpClient = exports2.HttpClientResponse = exports2.HttpClientError = exports2.MediaTypes = exports2.Headers = exports2.HttpCodes = void 0;
-    exports2.getProxyUrl = getProxyUrl2;
-    exports2.isHttps = isHttps;
-    var http = __importStar(require("http"));
-    var https = __importStar(require("https"));
-    var pm = __importStar(require_proxy());
-    var tunnel2 = __importStar(require_tunnel2());
-    var undici_1 = require_undici();
-    var HttpCodes2;
-    (function(HttpCodes3) {
-      HttpCodes3[HttpCodes3["OK"] = 200] = "OK";
-      HttpCodes3[HttpCodes3["MultipleChoices"] = 300] = "MultipleChoices";
-      HttpCodes3[HttpCodes3["MovedPermanently"] = 301] = "MovedPermanently";
-      HttpCodes3[HttpCodes3["ResourceMoved"] = 302] = "ResourceMoved";
-      HttpCodes3[HttpCodes3["SeeOther"] = 303] = "SeeOther";
-      HttpCodes3[HttpCodes3["NotModified"] = 304] = "NotModified";
-      HttpCodes3[HttpCodes3["UseProxy"] = 305] = "UseProxy";
-      HttpCodes3[HttpCodes3["SwitchProxy"] = 306] = "SwitchProxy";
-      HttpCodes3[HttpCodes3["TemporaryRedirect"] = 307] = "TemporaryRedirect";
-      HttpCodes3[HttpCodes3["PermanentRedirect"] = 308] = "PermanentRedirect";
-      HttpCodes3[HttpCodes3["BadRequest"] = 400] = "BadRequest";
-      HttpCodes3[HttpCodes3["Unauthorized"] = 401] = "Unauthorized";
-      HttpCodes3[HttpCodes3["PaymentRequired"] = 402] = "PaymentRequired";
-      HttpCodes3[HttpCodes3["Forbidden"] = 403] = "Forbidden";
-      HttpCodes3[HttpCodes3["NotFound"] = 404] = "NotFound";
-      HttpCodes3[HttpCodes3["MethodNotAllowed"] = 405] = "MethodNotAllowed";
-      HttpCodes3[HttpCodes3["NotAcceptable"] = 406] = "NotAcceptable";
-      HttpCodes3[HttpCodes3["ProxyAuthenticationRequired"] = 407] = "ProxyAuthenticationRequired";
-      HttpCodes3[HttpCodes3["RequestTimeout"] = 408] = "RequestTimeout";
-      HttpCodes3[HttpCodes3["Conflict"] = 409] = "Conflict";
-      HttpCodes3[HttpCodes3["Gone"] = 410] = "Gone";
-      HttpCodes3[HttpCodes3["TooManyRequests"] = 429] = "TooManyRequests";
-      HttpCodes3[HttpCodes3["InternalServerError"] = 500] = "InternalServerError";
-      HttpCodes3[HttpCodes3["NotImplemented"] = 501] = "NotImplemented";
-      HttpCodes3[HttpCodes3["BadGateway"] = 502] = "BadGateway";
-      HttpCodes3[HttpCodes3["ServiceUnavailable"] = 503] = "ServiceUnavailable";
-      HttpCodes3[HttpCodes3["GatewayTimeout"] = 504] = "GatewayTimeout";
-    })(HttpCodes2 || (exports2.HttpCodes = HttpCodes2 = {}));
-    var Headers2;
-    (function(Headers3) {
-      Headers3["Accept"] = "accept";
-      Headers3["ContentType"] = "content-type";
-    })(Headers2 || (exports2.Headers = Headers2 = {}));
-    var MediaTypes2;
-    (function(MediaTypes3) {
-      MediaTypes3["ApplicationJson"] = "application/json";
-    })(MediaTypes2 || (exports2.MediaTypes = MediaTypes2 = {}));
-    function getProxyUrl2(serverUrl) {
-      const proxyUrl = pm.getProxyUrl(new URL(serverUrl));
-      return proxyUrl ? proxyUrl.href : "";
-    }
-    var HttpRedirectCodes2 = [
-      HttpCodes2.MovedPermanently,
-      HttpCodes2.ResourceMoved,
-      HttpCodes2.SeeOther,
-      HttpCodes2.TemporaryRedirect,
-      HttpCodes2.PermanentRedirect
-    ];
-    var HttpResponseRetryCodes2 = [
-      HttpCodes2.BadGateway,
-      HttpCodes2.ServiceUnavailable,
-      HttpCodes2.GatewayTimeout
-    ];
-    var RetryableHttpVerbs = ["OPTIONS", "GET", "DELETE", "HEAD"];
-    var ExponentialBackoffCeiling = 10;
-    var ExponentialBackoffTimeSlice = 5;
-    var HttpClientError = class _HttpClientError extends Error {
-      constructor(message, statusCode) {
-        super(message);
-        this.name = "HttpClientError";
-        this.statusCode = statusCode;
-        Object.setPrototypeOf(this, _HttpClientError.prototype);
-      }
-    };
-    exports2.HttpClientError = HttpClientError;
-    var HttpClientResponse = class {
-      constructor(message) {
-        this.message = message;
-      }
-      readBody() {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve) => __awaiter3(this, void 0, void 0, function* () {
-            let output = Buffer.alloc(0);
-            this.message.on("data", (chunk) => {
-              output = Buffer.concat([output, chunk]);
-            });
-            this.message.on("end", () => {
-              resolve(output.toString());
-            });
-          }));
-        });
-      }
-      readBodyBuffer() {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve) => __awaiter3(this, void 0, void 0, function* () {
-            const chunks = [];
-            this.message.on("data", (chunk) => {
-              chunks.push(chunk);
-            });
-            this.message.on("end", () => {
-              resolve(Buffer.concat(chunks));
-            });
-          }));
-        });
-      }
-    };
-    exports2.HttpClientResponse = HttpClientResponse;
-    function isHttps(requestUrl) {
-      const parsedUrl = new URL(requestUrl);
-      return parsedUrl.protocol === "https:";
-    }
-    var HttpClient3 = class {
-      constructor(userAgent2, handlers, requestOptions) {
-        this._ignoreSslError = false;
-        this._allowRedirects = true;
-        this._allowRedirectDowngrade = false;
-        this._maxRedirects = 50;
-        this._allowRetries = false;
-        this._maxRetries = 1;
-        this._keepAlive = false;
-        this._disposed = false;
-        this.userAgent = this._getUserAgentWithOrchestrationId(userAgent2);
-        this.handlers = handlers || [];
-        this.requestOptions = requestOptions;
-        if (requestOptions) {
-          if (requestOptions.ignoreSslError != null) {
-            this._ignoreSslError = requestOptions.ignoreSslError;
-          }
-          this._socketTimeout = requestOptions.socketTimeout;
-          if (requestOptions.allowRedirects != null) {
-            this._allowRedirects = requestOptions.allowRedirects;
-          }
-          if (requestOptions.allowRedirectDowngrade != null) {
-            this._allowRedirectDowngrade = requestOptions.allowRedirectDowngrade;
-          }
-          if (requestOptions.maxRedirects != null) {
-            this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
-          }
-          if (requestOptions.keepAlive != null) {
-            this._keepAlive = requestOptions.keepAlive;
-          }
-          if (requestOptions.allowRetries != null) {
-            this._allowRetries = requestOptions.allowRetries;
-          }
-          if (requestOptions.maxRetries != null) {
-            this._maxRetries = requestOptions.maxRetries;
-          }
-        }
-      }
-      options(requestUrl, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("OPTIONS", requestUrl, null, additionalHeaders || {});
-        });
-      }
-      get(requestUrl, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("GET", requestUrl, null, additionalHeaders || {});
-        });
-      }
-      del(requestUrl, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("DELETE", requestUrl, null, additionalHeaders || {});
-        });
-      }
-      post(requestUrl, data, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("POST", requestUrl, data, additionalHeaders || {});
-        });
-      }
-      patch(requestUrl, data, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("PATCH", requestUrl, data, additionalHeaders || {});
-        });
-      }
-      put(requestUrl, data, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("PUT", requestUrl, data, additionalHeaders || {});
-        });
-      }
-      head(requestUrl, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request("HEAD", requestUrl, null, additionalHeaders || {});
-        });
-      }
-      sendStream(verb, requestUrl, stream, additionalHeaders) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return this.request(verb, requestUrl, stream, additionalHeaders);
-        });
-      }
-      /**
-       * Gets a typed object from an endpoint
-       * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
-       */
-      getJson(requestUrl_1) {
-        return __awaiter3(this, arguments, void 0, function* (requestUrl, additionalHeaders = {}) {
-          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
-          const res = yield this.get(requestUrl, additionalHeaders);
-          return this._processResponse(res, this.requestOptions);
-        });
-      }
-      postJson(requestUrl_1, obj_1) {
-        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
-          const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
-          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
-          const res = yield this.post(requestUrl, data, additionalHeaders);
-          return this._processResponse(res, this.requestOptions);
-        });
-      }
-      putJson(requestUrl_1, obj_1) {
-        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
-          const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
-          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
-          const res = yield this.put(requestUrl, data, additionalHeaders);
-          return this._processResponse(res, this.requestOptions);
-        });
-      }
-      patchJson(requestUrl_1, obj_1) {
-        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
-          const data = JSON.stringify(obj, null, 2);
-          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
-          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
-          const res = yield this.patch(requestUrl, data, additionalHeaders);
-          return this._processResponse(res, this.requestOptions);
-        });
-      }
-      /**
-       * Makes a raw http request.
-       * All other methods such as get, post, patch, and request ultimately call this.
-       * Prefer get, del, post and patch
-       */
-      request(verb, requestUrl, data, headers) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          if (this._disposed) {
-            throw new Error("Client has already been disposed.");
-          }
-          const parsedUrl = new URL(requestUrl);
-          let info = this._prepareRequest(verb, parsedUrl, headers);
-          const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
-          let numTries = 0;
-          let response;
-          do {
-            response = yield this.requestRaw(info, data);
-            if (response && response.message && response.message.statusCode === HttpCodes2.Unauthorized) {
-              let authenticationHandler;
-              for (const handler2 of this.handlers) {
-                if (handler2.canHandleAuthentication(response)) {
-                  authenticationHandler = handler2;
-                  break;
-                }
-              }
-              if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info, data);
-              } else {
-                return response;
-              }
-            }
-            let redirectsRemaining = this._maxRedirects;
-            while (response.message.statusCode && HttpRedirectCodes2.includes(response.message.statusCode) && this._allowRedirects && redirectsRemaining > 0) {
-              const redirectUrl = response.message.headers["location"];
-              if (!redirectUrl) {
-                break;
-              }
-              const parsedRedirectUrl = new URL(redirectUrl);
-              if (parsedUrl.protocol === "https:" && parsedUrl.protocol !== parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
-                throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
-              }
-              yield response.readBody();
-              if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
-                for (const header in headers) {
-                  if (header.toLowerCase() === "authorization") {
-                    delete headers[header];
-                  }
-                }
-              }
-              info = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info, data);
-              redirectsRemaining--;
-            }
-            if (!response.message.statusCode || !HttpResponseRetryCodes2.includes(response.message.statusCode)) {
-              return response;
-            }
-            numTries += 1;
-            if (numTries < maxTries) {
-              yield response.readBody();
-              yield this._performExponentialBackoff(numTries);
-            }
-          } while (numTries < maxTries);
-          return response;
-        });
-      }
-      /**
-       * Needs to be called if keepAlive is set to true in request options.
-       */
-      dispose() {
-        if (this._agent) {
-          this._agent.destroy();
-        }
-        this._disposed = true;
-      }
-      /**
-       * Raw request.
-       * @param info
-       * @param data
-       */
-      requestRaw(info, data) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve, reject) => {
-            function callbackForResult(err, res) {
-              if (err) {
-                reject(err);
-              } else if (!res) {
-                reject(new Error("Unknown error"));
-              } else {
-                resolve(res);
-              }
-            }
-            this.requestRawWithCallback(info, data, callbackForResult);
-          });
-        });
-      }
-      /**
-       * Raw request with callback.
-       * @param info
-       * @param data
-       * @param onResult
-       */
-      requestRawWithCallback(info, data, onResult) {
-        if (typeof data === "string") {
-          if (!info.options.headers) {
-            info.options.headers = {};
-          }
-          info.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
-        }
-        let callbackCalled = false;
-        function handleResult(err, res) {
-          if (!callbackCalled) {
-            callbackCalled = true;
-            onResult(err, res);
-          }
-        }
-        const req = info.httpModule.request(info.options, (msg) => {
-          const res = new HttpClientResponse(msg);
-          handleResult(void 0, res);
-        });
-        let socket;
-        req.on("socket", (sock) => {
-          socket = sock;
-        });
-        req.setTimeout(this._socketTimeout || 3 * 6e4, () => {
-          if (socket) {
-            socket.end();
-          }
-          handleResult(new Error(`Request timeout: ${info.options.path}`));
-        });
-        req.on("error", function(err) {
-          handleResult(err);
-        });
-        if (data && typeof data === "string") {
-          req.write(data, "utf8");
-        }
-        if (data && typeof data !== "string") {
-          data.on("close", function() {
-            req.end();
-          });
-          data.pipe(req);
-        } else {
-          req.end();
-        }
-      }
-      /**
-       * Gets an http agent. This function is useful when you need an http agent that handles
-       * routing through a proxy server - depending upon the url and proxy environment variables.
-       * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
-       */
-      getAgent(serverUrl) {
-        const parsedUrl = new URL(serverUrl);
-        return this._getAgent(parsedUrl);
-      }
-      getAgentDispatcher(serverUrl) {
-        const parsedUrl = new URL(serverUrl);
-        const proxyUrl = pm.getProxyUrl(parsedUrl);
-        const useProxy = proxyUrl && proxyUrl.hostname;
-        if (!useProxy) {
-          return;
-        }
-        return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
-      }
-      _prepareRequest(method, requestUrl, headers) {
-        const info = {};
-        info.parsedUrl = requestUrl;
-        const usingSsl = info.parsedUrl.protocol === "https:";
-        info.httpModule = usingSsl ? https : http;
-        const defaultPort = usingSsl ? 443 : 80;
-        info.options = {};
-        info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
-        info.options.path = (info.parsedUrl.pathname || "") + (info.parsedUrl.search || "");
-        info.options.method = method;
-        info.options.headers = this._mergeHeaders(headers);
-        if (this.userAgent != null) {
-          info.options.headers["user-agent"] = this.userAgent;
-        }
-        info.options.agent = this._getAgent(info.parsedUrl);
-        if (this.handlers) {
-          for (const handler2 of this.handlers) {
-            handler2.prepareRequest(info.options);
-          }
-        }
-        return info;
-      }
-      _mergeHeaders(headers) {
-        if (this.requestOptions && this.requestOptions.headers) {
-          return Object.assign({}, lowercaseKeys2(this.requestOptions.headers), lowercaseKeys2(headers || {}));
-        }
-        return lowercaseKeys2(headers || {});
-      }
-      /**
-       * Gets an existing header value or returns a default.
-       * Handles converting number header values to strings since HTTP headers must be strings.
-       * Note: This returns string | string[] since some headers can have multiple values.
-       * For headers that must always be a single string (like Content-Type), use the
-       * specialized _getExistingOrDefaultContentTypeHeader method instead.
-       */
-      _getExistingOrDefaultHeader(additionalHeaders, header, _default) {
-        let clientHeader;
-        if (this.requestOptions && this.requestOptions.headers) {
-          const headerValue = lowercaseKeys2(this.requestOptions.headers)[header];
-          if (headerValue) {
-            clientHeader = typeof headerValue === "number" ? headerValue.toString() : headerValue;
-          }
-        }
-        const additionalValue = additionalHeaders[header];
-        if (additionalValue !== void 0) {
-          return typeof additionalValue === "number" ? additionalValue.toString() : additionalValue;
-        }
-        if (clientHeader !== void 0) {
-          return clientHeader;
-        }
-        return _default;
-      }
-      /**
-       * Specialized version of _getExistingOrDefaultHeader for Content-Type header.
-       * Always returns a single string (not an array) since Content-Type should be a single value.
-       * Converts arrays to comma-separated strings and numbers to strings to ensure type safety.
-       * This was split from _getExistingOrDefaultHeader to provide stricter typing for callers
-       * that assign the result to places expecting a string (e.g., additionalHeaders[Headers.ContentType]).
-       */
-      _getExistingOrDefaultContentTypeHeader(additionalHeaders, _default) {
-        let clientHeader;
-        if (this.requestOptions && this.requestOptions.headers) {
-          const headerValue = lowercaseKeys2(this.requestOptions.headers)[Headers2.ContentType];
-          if (headerValue) {
-            if (typeof headerValue === "number") {
-              clientHeader = String(headerValue);
-            } else if (Array.isArray(headerValue)) {
-              clientHeader = headerValue.join(", ");
-            } else {
-              clientHeader = headerValue;
-            }
-          }
-        }
-        const additionalValue = additionalHeaders[Headers2.ContentType];
-        if (additionalValue !== void 0) {
-          if (typeof additionalValue === "number") {
-            return String(additionalValue);
-          } else if (Array.isArray(additionalValue)) {
-            return additionalValue.join(", ");
-          } else {
-            return additionalValue;
-          }
-        }
-        if (clientHeader !== void 0) {
-          return clientHeader;
-        }
-        return _default;
-      }
-      _getAgent(parsedUrl) {
-        let agent;
-        const proxyUrl = pm.getProxyUrl(parsedUrl);
-        const useProxy = proxyUrl && proxyUrl.hostname;
-        if (this._keepAlive && useProxy) {
-          agent = this._proxyAgent;
-        }
-        if (!useProxy) {
-          agent = this._agent;
-        }
-        if (agent) {
-          return agent;
-        }
-        const usingSsl = parsedUrl.protocol === "https:";
-        let maxSockets = 100;
-        if (this.requestOptions) {
-          maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
-        }
-        if (proxyUrl && proxyUrl.hostname) {
-          const agentOptions = {
-            maxSockets,
-            keepAlive: this._keepAlive,
-            proxy: Object.assign(Object.assign({}, (proxyUrl.username || proxyUrl.password) && {
-              proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
-            }), { host: proxyUrl.hostname, port: proxyUrl.port })
-          };
-          let tunnelAgent;
-          const overHttps = proxyUrl.protocol === "https:";
-          if (usingSsl) {
-            tunnelAgent = overHttps ? tunnel2.httpsOverHttps : tunnel2.httpsOverHttp;
-          } else {
-            tunnelAgent = overHttps ? tunnel2.httpOverHttps : tunnel2.httpOverHttp;
-          }
-          agent = tunnelAgent(agentOptions);
-          this._proxyAgent = agent;
-        }
-        if (!agent) {
-          const options = { keepAlive: this._keepAlive, maxSockets };
-          agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
-          this._agent = agent;
-        }
-        if (usingSsl && this._ignoreSslError) {
-          agent.options = Object.assign(agent.options || {}, {
-            rejectUnauthorized: false
-          });
-        }
-        return agent;
-      }
-      _getProxyAgentDispatcher(parsedUrl, proxyUrl) {
-        let proxyAgent;
-        if (this._keepAlive) {
-          proxyAgent = this._proxyAgentDispatcher;
-        }
-        if (proxyAgent) {
-          return proxyAgent;
-        }
-        const usingSsl = parsedUrl.protocol === "https:";
-        proxyAgent = new undici_1.ProxyAgent(Object.assign({ uri: proxyUrl.href, pipelining: !this._keepAlive ? 0 : 1 }, (proxyUrl.username || proxyUrl.password) && {
-          token: `Basic ${Buffer.from(`${proxyUrl.username}:${proxyUrl.password}`).toString("base64")}`
-        }));
-        this._proxyAgentDispatcher = proxyAgent;
-        if (usingSsl && this._ignoreSslError) {
-          proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
-            rejectUnauthorized: false
-          });
-        }
-        return proxyAgent;
-      }
-      _getUserAgentWithOrchestrationId(userAgent2) {
-        const baseUserAgent = userAgent2 || "actions/http-client";
-        const orchId = process.env["ACTIONS_ORCHESTRATION_ID"];
-        if (orchId) {
-          const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, "_");
-          return `${baseUserAgent} actions_orchestration_id/${sanitizedId}`;
-        }
-        return baseUserAgent;
-      }
-      _performExponentialBackoff(retryNumber) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
-          const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
-          return new Promise((resolve) => setTimeout(() => resolve(), ms));
-        });
-      }
-      _processResponse(res, options) {
-        return __awaiter3(this, void 0, void 0, function* () {
-          return new Promise((resolve, reject) => __awaiter3(this, void 0, void 0, function* () {
-            const statusCode = res.message.statusCode || 0;
-            const response = {
-              statusCode,
-              result: null,
-              headers: {}
-            };
-            if (statusCode === HttpCodes2.NotFound) {
-              resolve(response);
-            }
-            function dateTimeDeserializer(key, value) {
-              if (typeof value === "string") {
-                const a = new Date(value);
-                if (!isNaN(a.valueOf())) {
-                  return a;
-                }
-              }
-              return value;
-            }
-            let obj;
-            let contents;
-            try {
-              contents = yield res.readBody();
-              if (contents && contents.length > 0) {
-                if (options && options.deserializeDates) {
-                  obj = JSON.parse(contents, dateTimeDeserializer);
-                } else {
-                  obj = JSON.parse(contents);
-                }
-                response.result = obj;
-              }
-              response.headers = res.message.headers;
-            } catch (err) {
-            }
-            if (statusCode > 299) {
-              let msg;
-              if (obj && obj.message) {
-                msg = obj.message;
-              } else if (contents && contents.length > 0) {
-                msg = contents;
-              } else {
-                msg = `Failed request: (${statusCode})`;
-              }
-              const err = new HttpClientError(msg, statusCode);
-              err.result = response.result;
-              reject(err);
-            } else {
-              resolve(response);
-            }
-          }));
-        });
-      }
-    };
-    exports2.HttpClient = HttpClient3;
-    var lowercaseKeys2 = (obj) => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
-  }
-});
-
-// node_modules/.pnpm/fast-content-type-parse@3.0.0/node_modules/fast-content-type-parse/index.js
-var require_fast_content_type_parse = __commonJS({
-  "node_modules/.pnpm/fast-content-type-parse@3.0.0/node_modules/fast-content-type-parse/index.js"(exports2, module2) {
-    "use strict";
-    var NullObject = function NullObject2() {
-    };
-    NullObject.prototype = /* @__PURE__ */ Object.create(null);
-    var paramRE = /; *([!#$%&'*+.^\w`|~-]+)=("(?:[\v\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\v\u0020-\u00ff])*"|[!#$%&'*+.^\w`|~-]+) */gu;
-    var quotedPairRE = /\\([\v\u0020-\u00ff])/gu;
-    var mediaTypeRE = /^[!#$%&'*+.^\w|~-]+\/[!#$%&'*+.^\w|~-]+$/u;
-    var defaultContentType = { type: "", parameters: new NullObject() };
-    Object.freeze(defaultContentType.parameters);
-    Object.freeze(defaultContentType);
-    function parse2(header) {
-      if (typeof header !== "string") {
-        throw new TypeError("argument header is required and must be a string");
-      }
-      let index = header.indexOf(";");
-      const type = index !== -1 ? header.slice(0, index).trim() : header.trim();
-      if (mediaTypeRE.test(type) === false) {
-        throw new TypeError("invalid media type");
-      }
-      const result = {
-        type: type.toLowerCase(),
-        parameters: new NullObject()
-      };
-      if (index === -1) {
-        return result;
-      }
-      let key;
-      let match;
-      let value;
-      paramRE.lastIndex = index;
-      while (match = paramRE.exec(header)) {
-        if (match.index !== index) {
-          throw new TypeError("invalid parameter format");
-        }
-        index += match[0].length;
-        key = match[1].toLowerCase();
-        value = match[2];
-        if (value[0] === '"') {
-          value = value.slice(1, value.length - 1);
-          quotedPairRE.test(value) && (value = value.replace(quotedPairRE, "$1"));
-        }
-        result.parameters[key] = value;
-      }
-      if (index !== header.length) {
-        throw new TypeError("invalid parameter format");
-      }
-      return result;
-    }
-    function safeParse2(header) {
-      if (typeof header !== "string") {
-        return defaultContentType;
-      }
-      let index = header.indexOf(";");
-      const type = index !== -1 ? header.slice(0, index).trim() : header.trim();
-      if (mediaTypeRE.test(type) === false) {
-        return defaultContentType;
-      }
-      const result = {
-        type: type.toLowerCase(),
-        parameters: new NullObject()
-      };
-      if (index === -1) {
-        return result;
-      }
-      let key;
-      let match;
-      let value;
-      paramRE.lastIndex = index;
-      while (match = paramRE.exec(header)) {
-        if (match.index !== index) {
-          return defaultContentType;
-        }
-        index += match[0].length;
-        key = match[1].toLowerCase();
-        value = match[2];
-        if (value[0] === '"') {
-          value = value.slice(1, value.length - 1);
-          quotedPairRE.test(value) && (value = value.replace(quotedPairRE, "$1"));
-        }
-        result.parameters[key] = value;
-      }
-      if (index !== header.length) {
-        return defaultContentType;
-      }
-      return result;
-    }
-    module2.exports.default = { parse: parse2, safeParse: safeParse2 };
-    module2.exports.parse = parse2;
-    module2.exports.safeParse = safeParse2;
-    module2.exports.defaultContentType = defaultContentType;
-  }
-});
-
 // node_modules/.pnpm/semver@7.7.4/node_modules/semver/internal/constants.js
 var require_constants6 = __commonJS({
   "node_modules/.pnpm/semver@7.7.4/node_modules/semver/internal/constants.js"(exports2, module2) {
@@ -21431,6 +20563,874 @@ var require_semver2 = __commonJS({
   }
 });
 
+// node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/proxy.js
+var require_proxy = __commonJS({
+  "node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/proxy.js"(exports2) {
+    "use strict";
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.getProxyUrl = getProxyUrl2;
+    exports2.checkBypass = checkBypass;
+    function getProxyUrl2(reqUrl) {
+      const usingSsl = reqUrl.protocol === "https:";
+      if (checkBypass(reqUrl)) {
+        return void 0;
+      }
+      const proxyVar = (() => {
+        if (usingSsl) {
+          return process.env["https_proxy"] || process.env["HTTPS_PROXY"];
+        } else {
+          return process.env["http_proxy"] || process.env["HTTP_PROXY"];
+        }
+      })();
+      if (proxyVar) {
+        try {
+          return new DecodedURL(proxyVar);
+        } catch (_a) {
+          if (!proxyVar.startsWith("http://") && !proxyVar.startsWith("https://"))
+            return new DecodedURL(`http://${proxyVar}`);
+        }
+      } else {
+        return void 0;
+      }
+    }
+    function checkBypass(reqUrl) {
+      if (!reqUrl.hostname) {
+        return false;
+      }
+      const reqHost = reqUrl.hostname;
+      if (isLoopbackAddress(reqHost)) {
+        return true;
+      }
+      const noProxy = process.env["no_proxy"] || process.env["NO_PROXY"] || "";
+      if (!noProxy) {
+        return false;
+      }
+      let reqPort;
+      if (reqUrl.port) {
+        reqPort = Number(reqUrl.port);
+      } else if (reqUrl.protocol === "http:") {
+        reqPort = 80;
+      } else if (reqUrl.protocol === "https:") {
+        reqPort = 443;
+      }
+      const upperReqHosts = [reqUrl.hostname.toUpperCase()];
+      if (typeof reqPort === "number") {
+        upperReqHosts.push(`${upperReqHosts[0]}:${reqPort}`);
+      }
+      for (const upperNoProxyItem of noProxy.split(",").map((x) => x.trim().toUpperCase()).filter((x) => x)) {
+        if (upperNoProxyItem === "*" || upperReqHosts.some((x) => x === upperNoProxyItem || x.endsWith(`.${upperNoProxyItem}`) || upperNoProxyItem.startsWith(".") && x.endsWith(`${upperNoProxyItem}`))) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function isLoopbackAddress(host) {
+      const hostLower = host.toLowerCase();
+      return hostLower === "localhost" || hostLower.startsWith("127.") || hostLower.startsWith("[::1]") || hostLower.startsWith("[0:0:0:0:0:0:0:1]");
+    }
+    var DecodedURL = class extends URL {
+      constructor(url, base) {
+        super(url, base);
+        this._decodedUsername = decodeURIComponent(super.username);
+        this._decodedPassword = decodeURIComponent(super.password);
+      }
+      get username() {
+        return this._decodedUsername;
+      }
+      get password() {
+        return this._decodedPassword;
+      }
+    };
+  }
+});
+
+// node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js
+var require_lib = __commonJS({
+  "node_modules/.pnpm/@actions+http-client@3.0.2/node_modules/@actions/http-client/lib/index.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || /* @__PURE__ */ (function() {
+      var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function(o2) {
+          var ar = [];
+          for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+          return ar;
+        };
+        return ownKeys(o);
+      };
+      return function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) {
+          for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        }
+        __setModuleDefault(result, mod);
+        return result;
+      };
+    })();
+    var __awaiter3 = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+      function adopt(value) {
+        return value instanceof P ? value : new P(function(resolve) {
+          resolve(value);
+        });
+      }
+      return new (P || (P = Promise))(function(resolve, reject) {
+        function fulfilled(value) {
+          try {
+            step(generator.next(value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function rejected(value) {
+          try {
+            step(generator["throw"](value));
+          } catch (e) {
+            reject(e);
+          }
+        }
+        function step(result) {
+          result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+      });
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.HttpClient = exports2.HttpClientResponse = exports2.HttpClientError = exports2.MediaTypes = exports2.Headers = exports2.HttpCodes = void 0;
+    exports2.getProxyUrl = getProxyUrl2;
+    exports2.isHttps = isHttps;
+    var http = __importStar(require("http"));
+    var https = __importStar(require("https"));
+    var pm = __importStar(require_proxy());
+    var tunnel2 = __importStar(require_tunnel2());
+    var undici_1 = require_undici();
+    var HttpCodes2;
+    (function(HttpCodes3) {
+      HttpCodes3[HttpCodes3["OK"] = 200] = "OK";
+      HttpCodes3[HttpCodes3["MultipleChoices"] = 300] = "MultipleChoices";
+      HttpCodes3[HttpCodes3["MovedPermanently"] = 301] = "MovedPermanently";
+      HttpCodes3[HttpCodes3["ResourceMoved"] = 302] = "ResourceMoved";
+      HttpCodes3[HttpCodes3["SeeOther"] = 303] = "SeeOther";
+      HttpCodes3[HttpCodes3["NotModified"] = 304] = "NotModified";
+      HttpCodes3[HttpCodes3["UseProxy"] = 305] = "UseProxy";
+      HttpCodes3[HttpCodes3["SwitchProxy"] = 306] = "SwitchProxy";
+      HttpCodes3[HttpCodes3["TemporaryRedirect"] = 307] = "TemporaryRedirect";
+      HttpCodes3[HttpCodes3["PermanentRedirect"] = 308] = "PermanentRedirect";
+      HttpCodes3[HttpCodes3["BadRequest"] = 400] = "BadRequest";
+      HttpCodes3[HttpCodes3["Unauthorized"] = 401] = "Unauthorized";
+      HttpCodes3[HttpCodes3["PaymentRequired"] = 402] = "PaymentRequired";
+      HttpCodes3[HttpCodes3["Forbidden"] = 403] = "Forbidden";
+      HttpCodes3[HttpCodes3["NotFound"] = 404] = "NotFound";
+      HttpCodes3[HttpCodes3["MethodNotAllowed"] = 405] = "MethodNotAllowed";
+      HttpCodes3[HttpCodes3["NotAcceptable"] = 406] = "NotAcceptable";
+      HttpCodes3[HttpCodes3["ProxyAuthenticationRequired"] = 407] = "ProxyAuthenticationRequired";
+      HttpCodes3[HttpCodes3["RequestTimeout"] = 408] = "RequestTimeout";
+      HttpCodes3[HttpCodes3["Conflict"] = 409] = "Conflict";
+      HttpCodes3[HttpCodes3["Gone"] = 410] = "Gone";
+      HttpCodes3[HttpCodes3["TooManyRequests"] = 429] = "TooManyRequests";
+      HttpCodes3[HttpCodes3["InternalServerError"] = 500] = "InternalServerError";
+      HttpCodes3[HttpCodes3["NotImplemented"] = 501] = "NotImplemented";
+      HttpCodes3[HttpCodes3["BadGateway"] = 502] = "BadGateway";
+      HttpCodes3[HttpCodes3["ServiceUnavailable"] = 503] = "ServiceUnavailable";
+      HttpCodes3[HttpCodes3["GatewayTimeout"] = 504] = "GatewayTimeout";
+    })(HttpCodes2 || (exports2.HttpCodes = HttpCodes2 = {}));
+    var Headers2;
+    (function(Headers3) {
+      Headers3["Accept"] = "accept";
+      Headers3["ContentType"] = "content-type";
+    })(Headers2 || (exports2.Headers = Headers2 = {}));
+    var MediaTypes2;
+    (function(MediaTypes3) {
+      MediaTypes3["ApplicationJson"] = "application/json";
+    })(MediaTypes2 || (exports2.MediaTypes = MediaTypes2 = {}));
+    function getProxyUrl2(serverUrl) {
+      const proxyUrl = pm.getProxyUrl(new URL(serverUrl));
+      return proxyUrl ? proxyUrl.href : "";
+    }
+    var HttpRedirectCodes2 = [
+      HttpCodes2.MovedPermanently,
+      HttpCodes2.ResourceMoved,
+      HttpCodes2.SeeOther,
+      HttpCodes2.TemporaryRedirect,
+      HttpCodes2.PermanentRedirect
+    ];
+    var HttpResponseRetryCodes2 = [
+      HttpCodes2.BadGateway,
+      HttpCodes2.ServiceUnavailable,
+      HttpCodes2.GatewayTimeout
+    ];
+    var RetryableHttpVerbs = ["OPTIONS", "GET", "DELETE", "HEAD"];
+    var ExponentialBackoffCeiling = 10;
+    var ExponentialBackoffTimeSlice = 5;
+    var HttpClientError = class _HttpClientError extends Error {
+      constructor(message, statusCode) {
+        super(message);
+        this.name = "HttpClientError";
+        this.statusCode = statusCode;
+        Object.setPrototypeOf(this, _HttpClientError.prototype);
+      }
+    };
+    exports2.HttpClientError = HttpClientError;
+    var HttpClientResponse = class {
+      constructor(message) {
+        this.message = message;
+      }
+      readBody() {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve) => __awaiter3(this, void 0, void 0, function* () {
+            let output = Buffer.alloc(0);
+            this.message.on("data", (chunk) => {
+              output = Buffer.concat([output, chunk]);
+            });
+            this.message.on("end", () => {
+              resolve(output.toString());
+            });
+          }));
+        });
+      }
+      readBodyBuffer() {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve) => __awaiter3(this, void 0, void 0, function* () {
+            const chunks = [];
+            this.message.on("data", (chunk) => {
+              chunks.push(chunk);
+            });
+            this.message.on("end", () => {
+              resolve(Buffer.concat(chunks));
+            });
+          }));
+        });
+      }
+    };
+    exports2.HttpClientResponse = HttpClientResponse;
+    function isHttps(requestUrl) {
+      const parsedUrl = new URL(requestUrl);
+      return parsedUrl.protocol === "https:";
+    }
+    var HttpClient3 = class {
+      constructor(userAgent2, handlers, requestOptions) {
+        this._ignoreSslError = false;
+        this._allowRedirects = true;
+        this._allowRedirectDowngrade = false;
+        this._maxRedirects = 50;
+        this._allowRetries = false;
+        this._maxRetries = 1;
+        this._keepAlive = false;
+        this._disposed = false;
+        this.userAgent = this._getUserAgentWithOrchestrationId(userAgent2);
+        this.handlers = handlers || [];
+        this.requestOptions = requestOptions;
+        if (requestOptions) {
+          if (requestOptions.ignoreSslError != null) {
+            this._ignoreSslError = requestOptions.ignoreSslError;
+          }
+          this._socketTimeout = requestOptions.socketTimeout;
+          if (requestOptions.allowRedirects != null) {
+            this._allowRedirects = requestOptions.allowRedirects;
+          }
+          if (requestOptions.allowRedirectDowngrade != null) {
+            this._allowRedirectDowngrade = requestOptions.allowRedirectDowngrade;
+          }
+          if (requestOptions.maxRedirects != null) {
+            this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
+          }
+          if (requestOptions.keepAlive != null) {
+            this._keepAlive = requestOptions.keepAlive;
+          }
+          if (requestOptions.allowRetries != null) {
+            this._allowRetries = requestOptions.allowRetries;
+          }
+          if (requestOptions.maxRetries != null) {
+            this._maxRetries = requestOptions.maxRetries;
+          }
+        }
+      }
+      options(requestUrl, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("OPTIONS", requestUrl, null, additionalHeaders || {});
+        });
+      }
+      get(requestUrl, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("GET", requestUrl, null, additionalHeaders || {});
+        });
+      }
+      del(requestUrl, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("DELETE", requestUrl, null, additionalHeaders || {});
+        });
+      }
+      post(requestUrl, data, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("POST", requestUrl, data, additionalHeaders || {});
+        });
+      }
+      patch(requestUrl, data, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("PATCH", requestUrl, data, additionalHeaders || {});
+        });
+      }
+      put(requestUrl, data, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("PUT", requestUrl, data, additionalHeaders || {});
+        });
+      }
+      head(requestUrl, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request("HEAD", requestUrl, null, additionalHeaders || {});
+        });
+      }
+      sendStream(verb, requestUrl, stream, additionalHeaders) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return this.request(verb, requestUrl, stream, additionalHeaders);
+        });
+      }
+      /**
+       * Gets a typed object from an endpoint
+       * Be aware that not found returns a null.  Other errors (4xx, 5xx) reject the promise
+       */
+      getJson(requestUrl_1) {
+        return __awaiter3(this, arguments, void 0, function* (requestUrl, additionalHeaders = {}) {
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
+          const res = yield this.get(requestUrl, additionalHeaders);
+          return this._processResponse(res, this.requestOptions);
+        });
+      }
+      postJson(requestUrl_1, obj_1) {
+        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
+          const data = JSON.stringify(obj, null, 2);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
+          const res = yield this.post(requestUrl, data, additionalHeaders);
+          return this._processResponse(res, this.requestOptions);
+        });
+      }
+      putJson(requestUrl_1, obj_1) {
+        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
+          const data = JSON.stringify(obj, null, 2);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
+          const res = yield this.put(requestUrl, data, additionalHeaders);
+          return this._processResponse(res, this.requestOptions);
+        });
+      }
+      patchJson(requestUrl_1, obj_1) {
+        return __awaiter3(this, arguments, void 0, function* (requestUrl, obj, additionalHeaders = {}) {
+          const data = JSON.stringify(obj, null, 2);
+          additionalHeaders[Headers2.Accept] = this._getExistingOrDefaultHeader(additionalHeaders, Headers2.Accept, MediaTypes2.ApplicationJson);
+          additionalHeaders[Headers2.ContentType] = this._getExistingOrDefaultContentTypeHeader(additionalHeaders, MediaTypes2.ApplicationJson);
+          const res = yield this.patch(requestUrl, data, additionalHeaders);
+          return this._processResponse(res, this.requestOptions);
+        });
+      }
+      /**
+       * Makes a raw http request.
+       * All other methods such as get, post, patch, and request ultimately call this.
+       * Prefer get, del, post and patch
+       */
+      request(verb, requestUrl, data, headers) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          if (this._disposed) {
+            throw new Error("Client has already been disposed.");
+          }
+          const parsedUrl = new URL(requestUrl);
+          let info = this._prepareRequest(verb, parsedUrl, headers);
+          const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
+          let numTries = 0;
+          let response;
+          do {
+            response = yield this.requestRaw(info, data);
+            if (response && response.message && response.message.statusCode === HttpCodes2.Unauthorized) {
+              let authenticationHandler;
+              for (const handler2 of this.handlers) {
+                if (handler2.canHandleAuthentication(response)) {
+                  authenticationHandler = handler2;
+                  break;
+                }
+              }
+              if (authenticationHandler) {
+                return authenticationHandler.handleAuthentication(this, info, data);
+              } else {
+                return response;
+              }
+            }
+            let redirectsRemaining = this._maxRedirects;
+            while (response.message.statusCode && HttpRedirectCodes2.includes(response.message.statusCode) && this._allowRedirects && redirectsRemaining > 0) {
+              const redirectUrl = response.message.headers["location"];
+              if (!redirectUrl) {
+                break;
+              }
+              const parsedRedirectUrl = new URL(redirectUrl);
+              if (parsedUrl.protocol === "https:" && parsedUrl.protocol !== parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
+                throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
+              }
+              yield response.readBody();
+              if (parsedRedirectUrl.hostname !== parsedUrl.hostname) {
+                for (const header in headers) {
+                  if (header.toLowerCase() === "authorization") {
+                    delete headers[header];
+                  }
+                }
+              }
+              info = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info, data);
+              redirectsRemaining--;
+            }
+            if (!response.message.statusCode || !HttpResponseRetryCodes2.includes(response.message.statusCode)) {
+              return response;
+            }
+            numTries += 1;
+            if (numTries < maxTries) {
+              yield response.readBody();
+              yield this._performExponentialBackoff(numTries);
+            }
+          } while (numTries < maxTries);
+          return response;
+        });
+      }
+      /**
+       * Needs to be called if keepAlive is set to true in request options.
+       */
+      dispose() {
+        if (this._agent) {
+          this._agent.destroy();
+        }
+        this._disposed = true;
+      }
+      /**
+       * Raw request.
+       * @param info
+       * @param data
+       */
+      requestRaw(info, data) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve, reject) => {
+            function callbackForResult(err, res) {
+              if (err) {
+                reject(err);
+              } else if (!res) {
+                reject(new Error("Unknown error"));
+              } else {
+                resolve(res);
+              }
+            }
+            this.requestRawWithCallback(info, data, callbackForResult);
+          });
+        });
+      }
+      /**
+       * Raw request with callback.
+       * @param info
+       * @param data
+       * @param onResult
+       */
+      requestRawWithCallback(info, data, onResult) {
+        if (typeof data === "string") {
+          if (!info.options.headers) {
+            info.options.headers = {};
+          }
+          info.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+        }
+        let callbackCalled = false;
+        function handleResult(err, res) {
+          if (!callbackCalled) {
+            callbackCalled = true;
+            onResult(err, res);
+          }
+        }
+        const req = info.httpModule.request(info.options, (msg) => {
+          const res = new HttpClientResponse(msg);
+          handleResult(void 0, res);
+        });
+        let socket;
+        req.on("socket", (sock) => {
+          socket = sock;
+        });
+        req.setTimeout(this._socketTimeout || 3 * 6e4, () => {
+          if (socket) {
+            socket.end();
+          }
+          handleResult(new Error(`Request timeout: ${info.options.path}`));
+        });
+        req.on("error", function(err) {
+          handleResult(err);
+        });
+        if (data && typeof data === "string") {
+          req.write(data, "utf8");
+        }
+        if (data && typeof data !== "string") {
+          data.on("close", function() {
+            req.end();
+          });
+          data.pipe(req);
+        } else {
+          req.end();
+        }
+      }
+      /**
+       * Gets an http agent. This function is useful when you need an http agent that handles
+       * routing through a proxy server - depending upon the url and proxy environment variables.
+       * @param serverUrl  The server URL where the request will be sent. For example, https://api.github.com
+       */
+      getAgent(serverUrl) {
+        const parsedUrl = new URL(serverUrl);
+        return this._getAgent(parsedUrl);
+      }
+      getAgentDispatcher(serverUrl) {
+        const parsedUrl = new URL(serverUrl);
+        const proxyUrl = pm.getProxyUrl(parsedUrl);
+        const useProxy = proxyUrl && proxyUrl.hostname;
+        if (!useProxy) {
+          return;
+        }
+        return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
+      }
+      _prepareRequest(method, requestUrl, headers) {
+        const info = {};
+        info.parsedUrl = requestUrl;
+        const usingSsl = info.parsedUrl.protocol === "https:";
+        info.httpModule = usingSsl ? https : http;
+        const defaultPort = usingSsl ? 443 : 80;
+        info.options = {};
+        info.options.host = info.parsedUrl.hostname;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.path = (info.parsedUrl.pathname || "") + (info.parsedUrl.search || "");
+        info.options.method = method;
+        info.options.headers = this._mergeHeaders(headers);
+        if (this.userAgent != null) {
+          info.options.headers["user-agent"] = this.userAgent;
+        }
+        info.options.agent = this._getAgent(info.parsedUrl);
+        if (this.handlers) {
+          for (const handler2 of this.handlers) {
+            handler2.prepareRequest(info.options);
+          }
+        }
+        return info;
+      }
+      _mergeHeaders(headers) {
+        if (this.requestOptions && this.requestOptions.headers) {
+          return Object.assign({}, lowercaseKeys2(this.requestOptions.headers), lowercaseKeys2(headers || {}));
+        }
+        return lowercaseKeys2(headers || {});
+      }
+      /**
+       * Gets an existing header value or returns a default.
+       * Handles converting number header values to strings since HTTP headers must be strings.
+       * Note: This returns string | string[] since some headers can have multiple values.
+       * For headers that must always be a single string (like Content-Type), use the
+       * specialized _getExistingOrDefaultContentTypeHeader method instead.
+       */
+      _getExistingOrDefaultHeader(additionalHeaders, header, _default) {
+        let clientHeader;
+        if (this.requestOptions && this.requestOptions.headers) {
+          const headerValue = lowercaseKeys2(this.requestOptions.headers)[header];
+          if (headerValue) {
+            clientHeader = typeof headerValue === "number" ? headerValue.toString() : headerValue;
+          }
+        }
+        const additionalValue = additionalHeaders[header];
+        if (additionalValue !== void 0) {
+          return typeof additionalValue === "number" ? additionalValue.toString() : additionalValue;
+        }
+        if (clientHeader !== void 0) {
+          return clientHeader;
+        }
+        return _default;
+      }
+      /**
+       * Specialized version of _getExistingOrDefaultHeader for Content-Type header.
+       * Always returns a single string (not an array) since Content-Type should be a single value.
+       * Converts arrays to comma-separated strings and numbers to strings to ensure type safety.
+       * This was split from _getExistingOrDefaultHeader to provide stricter typing for callers
+       * that assign the result to places expecting a string (e.g., additionalHeaders[Headers.ContentType]).
+       */
+      _getExistingOrDefaultContentTypeHeader(additionalHeaders, _default) {
+        let clientHeader;
+        if (this.requestOptions && this.requestOptions.headers) {
+          const headerValue = lowercaseKeys2(this.requestOptions.headers)[Headers2.ContentType];
+          if (headerValue) {
+            if (typeof headerValue === "number") {
+              clientHeader = String(headerValue);
+            } else if (Array.isArray(headerValue)) {
+              clientHeader = headerValue.join(", ");
+            } else {
+              clientHeader = headerValue;
+            }
+          }
+        }
+        const additionalValue = additionalHeaders[Headers2.ContentType];
+        if (additionalValue !== void 0) {
+          if (typeof additionalValue === "number") {
+            return String(additionalValue);
+          } else if (Array.isArray(additionalValue)) {
+            return additionalValue.join(", ");
+          } else {
+            return additionalValue;
+          }
+        }
+        if (clientHeader !== void 0) {
+          return clientHeader;
+        }
+        return _default;
+      }
+      _getAgent(parsedUrl) {
+        let agent;
+        const proxyUrl = pm.getProxyUrl(parsedUrl);
+        const useProxy = proxyUrl && proxyUrl.hostname;
+        if (this._keepAlive && useProxy) {
+          agent = this._proxyAgent;
+        }
+        if (!useProxy) {
+          agent = this._agent;
+        }
+        if (agent) {
+          return agent;
+        }
+        const usingSsl = parsedUrl.protocol === "https:";
+        let maxSockets = 100;
+        if (this.requestOptions) {
+          maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
+        }
+        if (proxyUrl && proxyUrl.hostname) {
+          const agentOptions = {
+            maxSockets,
+            keepAlive: this._keepAlive,
+            proxy: Object.assign(Object.assign({}, (proxyUrl.username || proxyUrl.password) && {
+              proxyAuth: `${proxyUrl.username}:${proxyUrl.password}`
+            }), { host: proxyUrl.hostname, port: proxyUrl.port })
+          };
+          let tunnelAgent;
+          const overHttps = proxyUrl.protocol === "https:";
+          if (usingSsl) {
+            tunnelAgent = overHttps ? tunnel2.httpsOverHttps : tunnel2.httpsOverHttp;
+          } else {
+            tunnelAgent = overHttps ? tunnel2.httpOverHttps : tunnel2.httpOverHttp;
+          }
+          agent = tunnelAgent(agentOptions);
+          this._proxyAgent = agent;
+        }
+        if (!agent) {
+          const options = { keepAlive: this._keepAlive, maxSockets };
+          agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
+          this._agent = agent;
+        }
+        if (usingSsl && this._ignoreSslError) {
+          agent.options = Object.assign(agent.options || {}, {
+            rejectUnauthorized: false
+          });
+        }
+        return agent;
+      }
+      _getProxyAgentDispatcher(parsedUrl, proxyUrl) {
+        let proxyAgent;
+        if (this._keepAlive) {
+          proxyAgent = this._proxyAgentDispatcher;
+        }
+        if (proxyAgent) {
+          return proxyAgent;
+        }
+        const usingSsl = parsedUrl.protocol === "https:";
+        proxyAgent = new undici_1.ProxyAgent(Object.assign({ uri: proxyUrl.href, pipelining: !this._keepAlive ? 0 : 1 }, (proxyUrl.username || proxyUrl.password) && {
+          token: `Basic ${Buffer.from(`${proxyUrl.username}:${proxyUrl.password}`).toString("base64")}`
+        }));
+        this._proxyAgentDispatcher = proxyAgent;
+        if (usingSsl && this._ignoreSslError) {
+          proxyAgent.options = Object.assign(proxyAgent.options.requestTls || {}, {
+            rejectUnauthorized: false
+          });
+        }
+        return proxyAgent;
+      }
+      _getUserAgentWithOrchestrationId(userAgent2) {
+        const baseUserAgent = userAgent2 || "actions/http-client";
+        const orchId = process.env["ACTIONS_ORCHESTRATION_ID"];
+        if (orchId) {
+          const sanitizedId = orchId.replace(/[^a-z0-9_.-]/gi, "_");
+          return `${baseUserAgent} actions_orchestration_id/${sanitizedId}`;
+        }
+        return baseUserAgent;
+      }
+      _performExponentialBackoff(retryNumber) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
+          const ms = ExponentialBackoffTimeSlice * Math.pow(2, retryNumber);
+          return new Promise((resolve) => setTimeout(() => resolve(), ms));
+        });
+      }
+      _processResponse(res, options) {
+        return __awaiter3(this, void 0, void 0, function* () {
+          return new Promise((resolve, reject) => __awaiter3(this, void 0, void 0, function* () {
+            const statusCode = res.message.statusCode || 0;
+            const response = {
+              statusCode,
+              result: null,
+              headers: {}
+            };
+            if (statusCode === HttpCodes2.NotFound) {
+              resolve(response);
+            }
+            function dateTimeDeserializer(key, value) {
+              if (typeof value === "string") {
+                const a = new Date(value);
+                if (!isNaN(a.valueOf())) {
+                  return a;
+                }
+              }
+              return value;
+            }
+            let obj;
+            let contents;
+            try {
+              contents = yield res.readBody();
+              if (contents && contents.length > 0) {
+                if (options && options.deserializeDates) {
+                  obj = JSON.parse(contents, dateTimeDeserializer);
+                } else {
+                  obj = JSON.parse(contents);
+                }
+                response.result = obj;
+              }
+              response.headers = res.message.headers;
+            } catch (err) {
+            }
+            if (statusCode > 299) {
+              let msg;
+              if (obj && obj.message) {
+                msg = obj.message;
+              } else if (contents && contents.length > 0) {
+                msg = contents;
+              } else {
+                msg = `Failed request: (${statusCode})`;
+              }
+              const err = new HttpClientError(msg, statusCode);
+              err.result = response.result;
+              reject(err);
+            } else {
+              resolve(response);
+            }
+          }));
+        });
+      }
+    };
+    exports2.HttpClient = HttpClient3;
+    var lowercaseKeys2 = (obj) => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
+  }
+});
+
+// node_modules/.pnpm/fast-content-type-parse@3.0.0/node_modules/fast-content-type-parse/index.js
+var require_fast_content_type_parse = __commonJS({
+  "node_modules/.pnpm/fast-content-type-parse@3.0.0/node_modules/fast-content-type-parse/index.js"(exports2, module2) {
+    "use strict";
+    var NullObject = function NullObject2() {
+    };
+    NullObject.prototype = /* @__PURE__ */ Object.create(null);
+    var paramRE = /; *([!#$%&'*+.^\w`|~-]+)=("(?:[\v\u0020\u0021\u0023-\u005b\u005d-\u007e\u0080-\u00ff]|\\[\v\u0020-\u00ff])*"|[!#$%&'*+.^\w`|~-]+) */gu;
+    var quotedPairRE = /\\([\v\u0020-\u00ff])/gu;
+    var mediaTypeRE = /^[!#$%&'*+.^\w|~-]+\/[!#$%&'*+.^\w|~-]+$/u;
+    var defaultContentType = { type: "", parameters: new NullObject() };
+    Object.freeze(defaultContentType.parameters);
+    Object.freeze(defaultContentType);
+    function parse2(header) {
+      if (typeof header !== "string") {
+        throw new TypeError("argument header is required and must be a string");
+      }
+      let index = header.indexOf(";");
+      const type = index !== -1 ? header.slice(0, index).trim() : header.trim();
+      if (mediaTypeRE.test(type) === false) {
+        throw new TypeError("invalid media type");
+      }
+      const result = {
+        type: type.toLowerCase(),
+        parameters: new NullObject()
+      };
+      if (index === -1) {
+        return result;
+      }
+      let key;
+      let match;
+      let value;
+      paramRE.lastIndex = index;
+      while (match = paramRE.exec(header)) {
+        if (match.index !== index) {
+          throw new TypeError("invalid parameter format");
+        }
+        index += match[0].length;
+        key = match[1].toLowerCase();
+        value = match[2];
+        if (value[0] === '"') {
+          value = value.slice(1, value.length - 1);
+          quotedPairRE.test(value) && (value = value.replace(quotedPairRE, "$1"));
+        }
+        result.parameters[key] = value;
+      }
+      if (index !== header.length) {
+        throw new TypeError("invalid parameter format");
+      }
+      return result;
+    }
+    function safeParse2(header) {
+      if (typeof header !== "string") {
+        return defaultContentType;
+      }
+      let index = header.indexOf(";");
+      const type = index !== -1 ? header.slice(0, index).trim() : header.trim();
+      if (mediaTypeRE.test(type) === false) {
+        return defaultContentType;
+      }
+      const result = {
+        type: type.toLowerCase(),
+        parameters: new NullObject()
+      };
+      if (index === -1) {
+        return result;
+      }
+      let key;
+      let match;
+      let value;
+      paramRE.lastIndex = index;
+      while (match = paramRE.exec(header)) {
+        if (match.index !== index) {
+          return defaultContentType;
+        }
+        index += match[0].length;
+        key = match[1].toLowerCase();
+        value = match[2];
+        if (value[0] === '"') {
+          value = value.slice(1, value.length - 1);
+          quotedPairRE.test(value) && (value = value.replace(quotedPairRE, "$1"));
+        }
+        result.parameters[key] = value;
+      }
+      if (index !== header.length) {
+        return defaultContentType;
+      }
+      return result;
+    }
+    module2.exports.default = { parse: parse2, safeParse: safeParse2 };
+    module2.exports.parse = parse2;
+    module2.exports.safeParse = safeParse2;
+    module2.exports.defaultContentType = defaultContentType;
+  }
+});
+
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
@@ -21929,6 +21929,1525 @@ function error(message, properties = {}) {
 }
 function warning(message, properties = {}) {
   issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
+}
+
+// src/domain/value-objects/package-name.ts
+var PackageName = class {
+  value;
+  constructor(value) {
+    const normalized = value.trim();
+    if (!normalized) {
+      throw new Error("Package name cannot be empty.");
+    }
+    this.value = normalized;
+  }
+  toString() {
+    return this.value;
+  }
+};
+
+// src/ecosystems/base.ts
+var import_promises = require("node:fs/promises");
+var import_node_path = __toESM(require("node:path"));
+
+// src/domain/value-objects/local-package.ts
+var LocalPackage = class {
+  constructor(packageName, version) {
+    this.packageName = packageName;
+    this.version = version;
+  }
+  packageName;
+  version;
+};
+
+// src/domain/value-objects/version.ts
+var Version = class {
+  value;
+  constructor(value) {
+    const normalized = value.trim();
+    if (!normalized) {
+      throw new Error("Version cannot be empty.");
+    }
+    this.value = normalized;
+  }
+  equals(other) {
+    return this.value === other.value;
+  }
+  toString() {
+    return this.value;
+  }
+};
+
+// src/utils/version-pattern.ts
+function countCaptureGroups(pattern) {
+  let count = 0;
+  let escaped = false;
+  let inCharacterClass = false;
+  for (let index = 0; index < pattern.length; index += 1) {
+    const character = pattern[index];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (character === "[") {
+      inCharacterClass = true;
+      continue;
+    }
+    if (character === "]" && inCharacterClass) {
+      inCharacterClass = false;
+      continue;
+    }
+    if (inCharacterClass || character !== "(") {
+      continue;
+    }
+    const next = pattern[index + 1];
+    const nextTwo = pattern.slice(index + 1, index + 3);
+    if (next !== "?") {
+      count += 1;
+      continue;
+    }
+    if (nextTwo === "?<") {
+      count += 1;
+    }
+  }
+  return count;
+}
+function extractVersionFromPattern(content, pattern) {
+  if (countCaptureGroups(pattern) !== 1) {
+    throw new Error('The "version-pattern" input must contain exactly one capture group.');
+  }
+  let expression;
+  try {
+    expression = new RegExp(pattern, "m");
+  } catch (error2) {
+    throw new Error(`Invalid "version-pattern" regex: ${error2 instanceof Error ? error2.message : String(error2)}`);
+  }
+  const match = expression.exec(content);
+  if (!match || typeof match[1] !== "string" || match[1].trim() === "") {
+    throw new Error('The provided "version-pattern" did not match the file contents.');
+  }
+  return match[1].trim();
+}
+
+// src/ecosystems/base.ts
+var BaseEcosystemHandler = class {
+  registry;
+  supportedFileNames;
+  constructor(registry, supportedFileNames) {
+    this.registry = registry;
+    this.supportedFileNames = new Set(supportedFileNames.map((fileName) => fileName.toLowerCase()));
+  }
+  supports(filePath) {
+    return this.supportedFileNames.has(import_node_path.default.basename(filePath).toLowerCase());
+  }
+  async parseLocalPackage(filePath, versionPattern) {
+    const content = await (0, import_promises.readFile)(filePath, "utf8");
+    return this.parseLocalPackageContent(filePath, content, versionPattern);
+  }
+  async parseLocalPackageContent(filePath, content, versionPattern) {
+    const parsed = await this.parseFromFile(filePath, content);
+    if (versionPattern) {
+      return new LocalPackage(
+        parsed.packageName,
+        new Version(extractVersionFromPattern(content, versionPattern))
+      );
+    }
+    if (!parsed.version) {
+      throw new Error(`Unable to detect a local version from "${filePath}". Pass "version-pattern" for this file type.`);
+    }
+    return new LocalPackage(parsed.packageName, parsed.version);
+  }
+  fetchPublishedVersion(packageName, options) {
+    return this.fetchPublishedVersionInternal(packageName, options);
+  }
+};
+
+// src/domain/value-objects/local-package-candidate.ts
+var LocalPackageCandidate = class {
+  constructor(packageName, version) {
+    this.packageName = packageName;
+    this.version = version;
+  }
+  packageName;
+  version;
+};
+
+// src/ecosystems/pypi/toml.ts
+function stripComments(line) {
+  let result = "";
+  let inSingle = false;
+  let inDouble = false;
+  let escaped = false;
+  for (const character of line) {
+    if (escaped) {
+      result += character;
+      escaped = false;
+      continue;
+    }
+    if (character === "\\" && inDouble) {
+      result += character;
+      escaped = true;
+      continue;
+    }
+    if (character === '"' && !inSingle) {
+      inDouble = !inDouble;
+      result += character;
+      continue;
+    }
+    if (character === "'" && !inDouble) {
+      inSingle = !inSingle;
+      result += character;
+      continue;
+    }
+    if (character === "#" && !inSingle && !inDouble) {
+      break;
+    }
+    result += character;
+  }
+  return result.trim();
+}
+function splitTopLevel(input, separator) {
+  const parts = [];
+  let current = "";
+  let depth = 0;
+  let inSingle = false;
+  let inDouble = false;
+  let escaped = false;
+  for (const character of input) {
+    if (escaped) {
+      current += character;
+      escaped = false;
+      continue;
+    }
+    if (character === "\\" && inDouble) {
+      current += character;
+      escaped = true;
+      continue;
+    }
+    if (character === '"' && !inSingle) {
+      inDouble = !inDouble;
+      current += character;
+      continue;
+    }
+    if (character === "'" && !inDouble) {
+      inSingle = !inSingle;
+      current += character;
+      continue;
+    }
+    if (!inSingle && !inDouble) {
+      if (character === "[" || character === "{") {
+        depth += 1;
+      } else if (character === "]" || character === "}") {
+        depth -= 1;
+      } else if (character === separator && depth === 0) {
+        parts.push(current.trim());
+        current = "";
+        continue;
+      }
+    }
+    current += character;
+  }
+  if (current.trim()) {
+    parts.push(current.trim());
+  }
+  return parts;
+}
+function parseStringValue(input) {
+  if (input.length < 2) {
+    throw new Error(`Invalid TOML string: ${input}`);
+  }
+  const quote = input[0];
+  const body = input.slice(1, -1);
+  if (quote === "'") {
+    return body;
+  }
+  return body.replace(/\\n/g, "\n").replace(/\\t/g, "	").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+}
+function parseValue(rawValue) {
+  const value = rawValue.trim();
+  if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
+    return parseStringValue(value);
+  }
+  if (value === "true" || value === "false") {
+    return value === "true";
+  }
+  if (value.startsWith("[") && value.endsWith("]")) {
+    const inner = value.slice(1, -1).trim();
+    if (!inner) {
+      return [];
+    }
+    return splitTopLevel(inner, ",").map((entry) => parseValue(entry));
+  }
+  if (/^-?\d+(\.\d+)?$/.test(value)) {
+    return Number(value);
+  }
+  throw new Error(`Unsupported TOML value: ${value}`);
+}
+function ensureTable(root, pathParts) {
+  let current = root;
+  for (const part of pathParts) {
+    const existing = current[part];
+    if (existing == null) {
+      current[part] = {};
+    } else if (typeof existing !== "object" || Array.isArray(existing)) {
+      throw new Error(`TOML key "${pathParts.join(".")}" conflicts with a non-table value.`);
+    }
+    current = current[part];
+  }
+  return current;
+}
+function parseToml(content) {
+  const root = {};
+  let currentTable = root;
+  const lines = content.split(/\r?\n/);
+  for (let lineNumber = 0; lineNumber < lines.length; lineNumber += 1) {
+    const cleaned = stripComments(lines[lineNumber]);
+    if (!cleaned) {
+      continue;
+    }
+    if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
+      if (cleaned.startsWith("[[")) {
+        throw new Error("Array-of-table syntax is not supported by this action parser.");
+      }
+      const tableName = cleaned.slice(1, -1).trim();
+      if (!tableName) {
+        throw new Error(`Invalid TOML table declaration on line ${lineNumber + 1}.`);
+      }
+      currentTable = ensureTable(root, tableName.split(".").map((part) => part.trim()));
+      continue;
+    }
+    const equalsIndex = cleaned.indexOf("=");
+    if (equalsIndex <= 0) {
+      throw new Error(`Invalid TOML assignment on line ${lineNumber + 1}.`);
+    }
+    const key = cleaned.slice(0, equalsIndex).trim();
+    const rawValue = cleaned.slice(equalsIndex + 1).trim();
+    if (!key) {
+      throw new Error(`Invalid TOML key on line ${lineNumber + 1}.`);
+    }
+    currentTable[key] = parseValue(rawValue);
+  }
+  return root;
+}
+function getTomlString(table, path7) {
+  let current = table;
+  for (const part of path7) {
+    if (!current || typeof current !== "object" || Array.isArray(current) || !(part in current)) {
+      return void 0;
+    }
+    current = current[part];
+  }
+  return typeof current === "string" && current.trim() ? current.trim() : void 0;
+}
+
+// src/ecosystems/cargo/parser.ts
+var CargoTomlParser = class {
+  parse(_filePath, content) {
+    const document = parseToml(content);
+    const packageName = getTomlString(document, ["package", "name"]);
+    const packageVersion = getTomlString(document, ["package", "version"]);
+    const workspaceVersion = getTomlString(document, ["workspace", "package", "version"]);
+    if (!packageName) {
+      throw new Error("Cargo.toml is missing [package].name.");
+    }
+    const version = packageVersion ?? workspaceVersion;
+    if (!version) {
+      throw new Error('Cargo.toml is missing [package].version. If the crate version is inherited or generated, pass "version-pattern".');
+    }
+    return new LocalPackageCandidate(new PackageName(packageName), new Version(version));
+  }
+};
+function parseCargoToml(content) {
+  const parsed = new CargoTomlParser().parse("Cargo.toml", content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/cargo/registry.ts
+var semver = __toESM(require_semver2());
+
+// src/domain/value-objects/published-version.ts
+var PublishedVersion = class {
+  constructor(version) {
+    this.version = version;
+  }
+  version;
+  toString() {
+    return this.version?.value ?? "";
+  }
+};
+
+// src/ecosystems/cargo/registry.ts
+function getCrateIndexPath(packageName) {
+  const lower = packageName.toLowerCase();
+  if (!/^[a-z0-9_-]+$/.test(lower)) {
+    throw new Error(`Unsupported crate name "${packageName}".`);
+  }
+  if (lower.length === 1) {
+    return `1/${lower}`;
+  }
+  if (lower.length === 2) {
+    return `2/${lower}`;
+  }
+  if (lower.length === 3) {
+    return `3/${lower[0]}/${lower}`;
+  }
+  return `${lower.slice(0, 2)}/${lower.slice(2, 4)}/${lower}`;
+}
+var CratesIoRegistryClient = class {
+  registry = "crates-io";
+  async fetchPublishedVersion(packageName, options = {}) {
+    const url = `https://index.crates.io/${getCrateIndexPath(packageName.value)}`;
+    const fetchImpl = options.fetchImpl ?? fetch;
+    let lastError;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      try {
+        const response = await fetchImpl(url, {
+          headers: {
+            accept: "text/plain",
+            ...options.headers
+          }
+        });
+        if ([401, 403, 404].includes(response.status)) {
+          return new PublishedVersion(null);
+        }
+        if (!response.ok) {
+          if (response.status >= 500 && attempt === 1) {
+            continue;
+          }
+          throw new Error(`Request failed with status ${response.status} ${response.statusText}`.trim());
+        }
+        const body = await response.text();
+        const entries = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => JSON.parse(line)).filter((entry) => typeof entry.vers === "string" && !entry.yanked);
+        const versions = entries.map((entry) => semver.valid(entry.vers ?? "", { loose: true })).filter((entry) => Boolean(entry)).sort(semver.compare);
+        return new PublishedVersion(versions.length > 0 ? new Version(versions[versions.length - 1]) : null);
+      } catch (error2) {
+        lastError = error2;
+        if (attempt === 2) {
+          break;
+        }
+      }
+    }
+    throw new Error(`Unable to fetch registry metadata from ${url}: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
+  }
+};
+async function fetchCratesIoPublishedVersion(packageName, options = {}) {
+  const result = await new CratesIoRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
+  return { version: result.version?.value ?? null };
+}
+
+// src/ecosystems/cargo/ecosystem.ts
+var CargoEcosystem = class extends BaseEcosystemHandler {
+  parser = new CargoTomlParser();
+  registryClient = new CratesIoRegistryClient();
+  constructor() {
+    super("crates-io", ["cargo.toml"]);
+  }
+  parseFromFile(filePath, content) {
+    return this.parser.parse(filePath, content);
+  }
+  async fetchPublishedVersionInternal(packageName, options = {}) {
+    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
+    return result.toString();
+  }
+};
+
+// src/ecosystems/go/parser.ts
+var GoModParser = class {
+  parse(_filePath, content) {
+    const match = content.match(/^\s*module\s+([^\s]+)\s*$/m);
+    const packageName = match?.[1]?.trim();
+    if (!packageName) {
+      throw new Error("go.mod is missing a valid module directive.");
+    }
+    return new LocalPackageCandidate(new PackageName(packageName));
+  }
+};
+function parseGoMod(content) {
+  const parsed = new GoModParser().parse("go.mod", content);
+  return {
+    packageName: parsed.packageName.value
+  };
+}
+
+// src/utils/http.ts
+async function fetchJsonWithRetry(url, options = {}) {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const missingStatusCodes = new Set(options.missingStatusCodes ?? [404]);
+  let lastError;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      const response = await fetchImpl(url, {
+        headers: {
+          accept: "application/json",
+          ...options.headers
+        }
+      });
+      if (missingStatusCodes.has(response.status)) {
+        return { found: false, data: null };
+      }
+      if (response.ok) {
+        return {
+          found: true,
+          data: await response.json()
+        };
+      }
+      if (response.status >= 500 && attempt === 1) {
+        continue;
+      }
+      throw new Error(`Request failed with status ${response.status} ${response.statusText}`.trim());
+    } catch (error2) {
+      lastError = error2;
+      if (attempt === 2) {
+        break;
+      }
+    }
+  }
+  const suffix = lastError instanceof Error ? lastError.message : String(lastError);
+  throw new Error(`Unable to fetch registry metadata from ${url}: ${suffix}`);
+}
+
+// src/ecosystems/go/registry.ts
+function escapeGoModulePath(modulePath) {
+  return modulePath.replace(/[A-Z]/g, (character) => `!${character.toLowerCase()}`);
+}
+var GoProxyRegistryClient = class {
+  registry = "go-proxy";
+  async fetchPublishedVersion(packageName, options = {}) {
+    const escapedPath = escapeGoModulePath(packageName.value);
+    const url = `https://proxy.golang.org/${escapedPath}/@latest`;
+    const response = await fetchJsonWithRetry(url, {
+      ...options,
+      missingStatusCodes: [401, 403, 404]
+    });
+    if (!response.found) {
+      return new PublishedVersion(null);
+    }
+    const version = response.data?.Version?.trim();
+    return new PublishedVersion(version ? new Version(version) : null);
+  }
+};
+async function fetchGoProxyPublishedVersion(packageName, options = {}) {
+  const result = await new GoProxyRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
+  return { version: result.version?.value ?? null };
+}
+
+// src/ecosystems/go/ecosystem.ts
+var GoEcosystem = class extends BaseEcosystemHandler {
+  parser = new GoModParser();
+  registryClient = new GoProxyRegistryClient();
+  constructor() {
+    super("go-proxy", ["go.mod"]);
+  }
+  parseFromFile(filePath, content) {
+    return this.parser.parse(filePath, content);
+  }
+  async fetchPublishedVersionInternal(packageName, options = {}) {
+    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
+    return result.toString();
+  }
+};
+
+// src/ecosystems/maven-central/ecosystem.ts
+var import_node_path3 = __toESM(require("node:path"));
+
+// src/ecosystems/maven-central/gradle.ts
+var import_promises2 = require("node:fs/promises");
+var import_node_path2 = __toESM(require("node:path"));
+
+// src/ecosystems/maven-central/properties.ts
+function parseProperties(content) {
+  const result = {};
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#") || line.startsWith("!")) {
+      continue;
+    }
+    const separatorIndex = line.search(/[:=]/);
+    if (separatorIndex < 0) {
+      continue;
+    }
+    const key = line.slice(0, separatorIndex).trim();
+    const value = line.slice(separatorIndex + 1).trim();
+    if (key) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+// src/ecosystems/maven-central/gradle.ts
+function stripComments2(content) {
+  return content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+}
+function readQuotedValue(value) {
+  const match = value.match(/^["']([^"']+)["']/);
+  return match?.[1]?.trim();
+}
+function resolveGradleValue(rawValue, variables) {
+  if (!rawValue) {
+    return void 0;
+  }
+  const trimmed = rawValue.trim();
+  const quoted = readQuotedValue(trimmed);
+  if (quoted) {
+    return quoted;
+  }
+  const propertyAccess = trimmed.match(/^(?:project\.)?(?:findProperty|property)\(["']([^"']+)["']\)$/);
+  if (propertyAccess) {
+    return variables[propertyAccess[1]];
+  }
+  const simpleIdentifier = trimmed.match(/^[A-Za-z_][A-Za-z0-9_.-]*$/);
+  if (simpleIdentifier) {
+    const key = simpleIdentifier[0];
+    return variables[key] ?? variables[key.replace(/^project\./, "")];
+  }
+  return void 0;
+}
+function collectAssignments(content, variables) {
+  const assignments = /* @__PURE__ */ new Map();
+  const patterns = [
+    /^\s*(group|version|archivesBaseName)\s*=\s*(.+)$/gm,
+    /^\s*set(Group|Version|ArchivesBaseName)\((.+)\)\s*$/gm
+  ];
+  for (const pattern of patterns) {
+    for (const match of content.matchAll(pattern)) {
+      const rawKey = match[1];
+      const key = rawKey[0].toLowerCase() + rawKey.slice(1);
+      const resolved = resolveGradleValue(match[2], variables);
+      if (resolved) {
+        assignments.set(key, resolved);
+      }
+    }
+  }
+  const archivesNameBlockMatch = content.match(/base\s*\{[\s\S]*?archivesName\s*=\s*(.+?)\r?\n[\s\S]*?\}/m);
+  if (archivesNameBlockMatch) {
+    const archivesName = resolveGradleValue(archivesNameBlockMatch[1], variables);
+    if (archivesName) {
+      assignments.set("archivesBaseName", archivesName);
+    }
+  }
+  return assignments;
+}
+async function detectGradleProjectName(filePath) {
+  const projectDirectory = import_node_path2.default.dirname(filePath);
+  const candidates = ["settings.gradle", "settings.gradle.kts"];
+  for (const candidate of candidates) {
+    try {
+      const content = await (0, import_promises2.readFile)(import_node_path2.default.join(projectDirectory, candidate), "utf8");
+      const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
+      if (match?.[1]?.trim()) {
+        return match[1].trim();
+      }
+    } catch {
+      continue;
+    }
+  }
+  return import_node_path2.default.basename(projectDirectory);
+}
+var GradleBuildParser = class {
+  async parse(filePath, content) {
+    const strippedContent = stripComments2(content);
+    const projectDirectory = import_node_path2.default.dirname(filePath);
+    let properties = {};
+    try {
+      properties = parseProperties(await (0, import_promises2.readFile)(import_node_path2.default.join(projectDirectory, "gradle.properties"), "utf8"));
+    } catch {
+      properties = {};
+    }
+    const assignments = collectAssignments(strippedContent, properties);
+    const groupId = assignments.get("group");
+    const version = assignments.get("version");
+    const artifactId = assignments.get("archivesBaseName") ?? await detectGradleProjectName(filePath);
+    if (!groupId) {
+      throw new Error('build.gradle is missing a static or gradle.properties-backed "group" value.');
+    }
+    if (!version) {
+      throw new Error('build.gradle is missing a static or gradle.properties-backed "version" value.');
+    }
+    if (!artifactId) {
+      throw new Error('Unable to determine the Gradle artifact name. Set archivesBaseName, rootProject.name, or pass "package-name".');
+    }
+    return new LocalPackageCandidate(
+      new PackageName(`${groupId}:${artifactId}`),
+      new Version(version)
+    );
+  }
+};
+async function parseGradleBuildFile(filePath) {
+  const content = await (0, import_promises2.readFile)(filePath, "utf8");
+  const parsed = await new GradleBuildParser().parse(filePath, content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/maven-central/xml.ts
+function decodeXmlText(value) {
+  return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+}
+function normalizeTagName(name) {
+  const trimmed = name.trim();
+  const colonIndex = trimmed.indexOf(":");
+  return colonIndex >= 0 ? trimmed.slice(colonIndex + 1) : trimmed;
+}
+function parseXml(content) {
+  const sanitized = content.replace(/<\?xml[\s\S]*?\?>/g, "").replace(/<!DOCTYPE[\s\S]*?>/g, "").replace(/<!--[\s\S]*?-->/g, "");
+  const root = { name: "__root__", children: [], text: "" };
+  const stack = [root];
+  const tokenPattern = /<[^>]+>|[^<]+/g;
+  for (const token of sanitized.match(tokenPattern) ?? []) {
+    if (!token) {
+      continue;
+    }
+    if (!token.startsWith("<")) {
+      const text = decodeXmlText(token).trim();
+      if (text) {
+        const current = stack[stack.length - 1];
+        current.text = current.text ? `${current.text} ${text}` : text;
+      }
+      continue;
+    }
+    if (token.startsWith("</")) {
+      const tagName2 = normalizeTagName(token.slice(2, -1));
+      const current = stack.pop();
+      if (!current || current.name !== tagName2) {
+        throw new Error(`Malformed XML: unexpected closing tag </${tagName2}>.`);
+      }
+      continue;
+    }
+    if (token.startsWith("<!")) {
+      continue;
+    }
+    const selfClosing = token.endsWith("/>");
+    const inner = token.slice(1, selfClosing ? -2 : -1).trim();
+    const tagName = normalizeTagName(inner.split(/\s+/, 1)[0]);
+    const node = { name: tagName, children: [], text: "" };
+    stack[stack.length - 1].children.push(node);
+    if (!selfClosing) {
+      stack.push(node);
+    }
+  }
+  if (stack.length !== 1 || root.children.length !== 1) {
+    throw new Error("Malformed XML: document structure is invalid.");
+  }
+  return root.children[0];
+}
+function getChild(node, childName) {
+  return node.children.find((child) => child.name === childName);
+}
+function getChildText(node, childName) {
+  const child = getChild(node, childName);
+  return child?.text?.trim() || void 0;
+}
+
+// src/ecosystems/maven-central/pom.ts
+function collectProperties(projectNode) {
+  const propertiesNode = getChild(projectNode, "properties");
+  const properties = {};
+  if (!propertiesNode) {
+    return properties;
+  }
+  for (const child of propertiesNode.children) {
+    if (child.text.trim()) {
+      properties[child.name] = child.text.trim();
+    }
+  }
+  return properties;
+}
+function resolvePlaceholders(value, properties) {
+  if (!value) {
+    return void 0;
+  }
+  let resolved = value;
+  for (let index = 0; index < 10; index += 1) {
+    const next = resolved.replace(/\$\{([^}]+)\}/g, (_, propertyName) => properties[propertyName] ?? `\${${propertyName}}`);
+    if (next === resolved) {
+      break;
+    }
+    resolved = next;
+  }
+  return resolved;
+}
+var PomXmlParser = class {
+  parse(_filePath, content) {
+    const document = parseXml(content);
+    if (document.name !== "project") {
+      throw new Error("pom.xml must have <project> as the root element.");
+    }
+    const parentNode = getChild(document, "parent");
+    const projectArtifactId = getChildText(document, "artifactId");
+    const parentGroupId = getChildText(parentNode ?? document, "groupId");
+    const parentVersion = getChildText(parentNode ?? document, "version");
+    const projectGroupId = getChildText(document, "groupId") ?? parentGroupId;
+    const projectVersion = getChildText(document, "version") ?? parentVersion;
+    const properties = collectProperties(document);
+    if (parentGroupId) {
+      properties["parent.groupId"] = parentGroupId;
+    }
+    if (parentVersion) {
+      properties["parent.version"] = parentVersion;
+    }
+    if (projectGroupId) {
+      properties["project.groupId"] = projectGroupId;
+      properties["groupId"] = projectGroupId;
+    }
+    if (projectArtifactId) {
+      properties["project.artifactId"] = projectArtifactId;
+      properties["artifactId"] = projectArtifactId;
+    }
+    if (projectVersion) {
+      properties["project.version"] = projectVersion;
+      properties["version"] = projectVersion;
+    }
+    const groupId = resolvePlaceholders(projectGroupId, properties)?.trim();
+    const artifactId = resolvePlaceholders(projectArtifactId, properties)?.trim();
+    const version = resolvePlaceholders(projectVersion, properties)?.trim();
+    if (!groupId) {
+      throw new Error("pom.xml is missing a resolvable <groupId>.");
+    }
+    if (!artifactId) {
+      throw new Error("pom.xml is missing a resolvable <artifactId>.");
+    }
+    if (!version) {
+      throw new Error("pom.xml is missing a resolvable <version>.");
+    }
+    return new LocalPackageCandidate(
+      new PackageName(`${groupId}:${artifactId}`),
+      new Version(version)
+    );
+  }
+};
+function parsePomXml(content) {
+  const parsed = new PomXmlParser().parse("pom.xml", content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/maven-central/registry.ts
+function parseCoordinates(packageName) {
+  const parts = packageName.split(":");
+  if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+    throw new Error('Maven Central lookups require "package-name" in "groupId:artifactId" format.');
+  }
+  return {
+    groupId: parts[0].trim(),
+    artifactId: parts[1].trim()
+  };
+}
+var MavenCentralRegistryClient = class {
+  registry = "maven-central";
+  async fetchPublishedVersion(packageName, options = {}) {
+    const { groupId, artifactId } = parseCoordinates(packageName.value);
+    const query = encodeURIComponent(`g:${groupId} AND a:${artifactId}`);
+    const url = `https://search.maven.org/solrsearch/select?q=${query}&rows=1&wt=json`;
+    const response = await fetchJsonWithRetry(url, {
+      ...options,
+      missingStatusCodes: [401, 403, 404]
+    });
+    if (!response.found) {
+      return new PublishedVersion(null);
+    }
+    const version = response.data?.response?.docs?.[0]?.latestVersion?.trim();
+    return new PublishedVersion(version ? new Version(version) : null);
+  }
+};
+async function fetchMavenCentralPublishedVersion(packageName, options = {}) {
+  const result = await new MavenCentralRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
+  return { version: result.version?.value ?? null };
+}
+
+// src/ecosystems/maven-central/ecosystem.ts
+var MavenCentralEcosystem = class extends BaseEcosystemHandler {
+  gradleParser = new GradleBuildParser();
+  pomParser = new PomXmlParser();
+  registryClient = new MavenCentralRegistryClient();
+  constructor() {
+    super("maven-central", ["pom.xml", "build.gradle", "build.gradle.kts"]);
+  }
+  parseFromFile(filePath, content) {
+    const fileName = import_node_path3.default.basename(filePath).toLowerCase();
+    if (fileName === "pom.xml") {
+      return this.pomParser.parse(filePath, content);
+    }
+    return this.gradleParser.parse(filePath, content);
+  }
+  async fetchPublishedVersionInternal(packageName, options = {}) {
+    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
+    return result.toString();
+  }
+};
+
+// src/ecosystems/npm/parser.ts
+var NpmPackageParser = class {
+  parse(_filePath, content) {
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (error2) {
+      throw new Error(`Invalid package.json: ${error2 instanceof Error ? error2.message : String(error2)}`);
+    }
+    if (!parsed || typeof parsed !== "object") {
+      throw new Error("Invalid package.json: expected a JSON object.");
+    }
+    const candidate = parsed;
+    const packageName = typeof candidate.name === "string" ? candidate.name.trim() : "";
+    const version = typeof candidate.version === "string" ? candidate.version.trim() : "";
+    if (!packageName) {
+      throw new Error('package.json is missing a non-empty "name" field.');
+    }
+    if (!version) {
+      throw new Error('package.json is missing a non-empty "version" field.');
+    }
+    return new LocalPackageCandidate(
+      new PackageName(packageName),
+      new Version(version)
+    );
+  }
+};
+function parsePackageJson(content) {
+  const parsed = new NpmPackageParser().parse("package.json", content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/npm/registry.ts
+var NpmRegistryClient = class {
+  registry = "npm";
+  async fetchPublishedVersion(packageName, options = {}) {
+    const encodedName = encodeURIComponent(packageName.value);
+    const response = await fetchJsonWithRetry(`https://registry.npmjs.org/${encodedName}`, {
+      ...options,
+      missingStatusCodes: [401, 403, 404]
+    });
+    if (!response.found) {
+      return new PublishedVersion(null);
+    }
+    const version = response.data?.["dist-tags"]?.latest?.trim();
+    return new PublishedVersion(version ? new Version(version) : null);
+  }
+};
+async function fetchNpmPublishedVersion(packageName, options = {}) {
+  const result = await new NpmRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
+  return { version: result.version?.value ?? null };
+}
+
+// src/ecosystems/npm/ecosystem.ts
+var NpmEcosystem = class extends BaseEcosystemHandler {
+  parser = new NpmPackageParser();
+  registryClient = new NpmRegistryClient();
+  constructor() {
+    super("npm", ["package.json"]);
+  }
+  parseFromFile(filePath, content) {
+    return this.parser.parse(filePath, content);
+  }
+  async fetchPublishedVersionInternal(packageName, options = {}) {
+    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
+    return result.toString();
+  }
+};
+
+// src/ecosystems/pypi/ecosystem.ts
+var import_node_path4 = __toESM(require("node:path"));
+
+// src/ecosystems/pypi/pyproject.ts
+var PyProjectParser = class {
+  parse(_filePath, content) {
+    const document = parseToml(content);
+    const projectName = getTomlString(document, ["project", "name"]);
+    const projectVersion = getTomlString(document, ["project", "version"]);
+    if (projectName && projectVersion) {
+      return new LocalPackageCandidate(new PackageName(projectName), new Version(projectVersion));
+    }
+    const poetryName = getTomlString(document, ["tool", "poetry", "name"]);
+    const poetryVersion = getTomlString(document, ["tool", "poetry", "version"]);
+    if (poetryName && poetryVersion) {
+      return new LocalPackageCandidate(new PackageName(poetryName), new Version(poetryVersion));
+    }
+    if (projectName && !projectVersion) {
+      throw new Error("pyproject.toml is missing [project].version and no [tool.poetry].version fallback was found.");
+    }
+    throw new Error("Unable to detect package name and version from pyproject.toml.");
+  }
+};
+function parsePyProjectToml(content) {
+  const parsed = new PyProjectParser().parse("pyproject.toml", content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/pypi/registry.ts
+var PypiRegistryClient = class {
+  registry = "pypi";
+  async fetchPublishedVersion(packageName, options = {}) {
+    const encodedName = encodeURIComponent(packageName.value);
+    const response = await fetchJsonWithRetry(`https://pypi.org/pypi/${encodedName}/json`, {
+      ...options,
+      missingStatusCodes: [401, 403, 404]
+    });
+    if (!response.found) {
+      return new PublishedVersion(null);
+    }
+    const version = response.data?.info?.version?.trim();
+    return new PublishedVersion(version ? new Version(version) : null);
+  }
+};
+async function fetchPypiPublishedVersion(packageName, options = {}) {
+  const result = await new PypiRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
+  return { version: result.version?.value ?? null };
+}
+
+// src/ecosystems/pypi/setup-py.ts
+function isIdentifierStart(character) {
+  return /[A-Za-z_]/.test(character);
+}
+function isIdentifierPart(character) {
+  return /[A-Za-z0-9_]/.test(character);
+}
+function readString(source, start) {
+  let index = start;
+  while (/[rRuUbBfF]/.test(source[index] ?? "")) {
+    index += 1;
+  }
+  const quote = source[index];
+  if (quote !== "'" && quote !== '"') {
+    throw new Error(`Invalid Python string prefix near: ${source.slice(start, start + 20)}`);
+  }
+  const triple = source.slice(index, index + 3) === quote.repeat(3);
+  const delimiterLength = triple ? 3 : 1;
+  let cursor = index + delimiterLength;
+  let result = "";
+  while (cursor < source.length) {
+    if (!triple && source[cursor] === "\\") {
+      const escaped = source[cursor + 1];
+      const mapped = escaped === "n" ? "\n" : escaped === "t" ? "	" : escaped === quote ? quote : escaped;
+      result += mapped;
+      cursor += 2;
+      continue;
+    }
+    if (source.slice(cursor, cursor + delimiterLength) === quote.repeat(delimiterLength)) {
+      return {
+        value: result,
+        nextIndex: cursor + delimiterLength
+      };
+    }
+    result += source[cursor];
+    cursor += 1;
+  }
+  throw new Error("Unterminated Python string literal.");
+}
+function tokenize(source) {
+  const tokens = [];
+  let index = 0;
+  while (index < source.length) {
+    const character = source[index];
+    if (character === " " || character === "	" || character === "\r") {
+      index += 1;
+      continue;
+    }
+    if (character === "\n" || character === ";") {
+      tokens.push({ type: "newline" });
+      index += 1;
+      continue;
+    }
+    if (character === "#") {
+      while (index < source.length && source[index] !== "\n") {
+        index += 1;
+      }
+      continue;
+    }
+    if (isIdentifierStart(character)) {
+      if ((source[index + 1] === '"' || source[index + 1] === "'") && /[rRuUbBfF]/.test(character)) {
+        const { value, nextIndex } = readString(source, index);
+        tokens.push({ type: "string", value });
+        index = nextIndex;
+        continue;
+      }
+      let end = index + 1;
+      while (end < source.length && isIdentifierPart(source[end])) {
+        end += 1;
+      }
+      tokens.push({ type: "identifier", value: source.slice(index, end) });
+      index = end;
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      const { value, nextIndex } = readString(source, index);
+      tokens.push({ type: "string", value });
+      index = nextIndex;
+      continue;
+    }
+    if (/\d/.test(character)) {
+      let end = index + 1;
+      while (end < source.length && /[\d.]/.test(source[end])) {
+        end += 1;
+      }
+      tokens.push({ type: "number", value: source.slice(index, end) });
+      index = end;
+      continue;
+    }
+    const singleCharacterTokens = {
+      "(": "lparen",
+      ")": "rparen",
+      "[": "lbracket",
+      "]": "rbracket",
+      "{": "lbrace",
+      "}": "rbrace",
+      ",": "comma",
+      ".": "dot",
+      ":": "colon",
+      "=": "equal"
+    };
+    const tokenType = singleCharacterTokens[character];
+    if (tokenType) {
+      tokens.push({ type: tokenType });
+      index += 1;
+      continue;
+    }
+    throw new Error(`Unsupported Python syntax near "${source.slice(index, index + 20)}"`);
+  }
+  tokens.push({ type: "eof" });
+  return tokens;
+}
+var Parser = class {
+  tokens;
+  position = 0;
+  constructor(tokens) {
+    this.tokens = tokens;
+  }
+  parseModule() {
+    const statements = [];
+    while (!this.is("eof")) {
+      this.consumeNewlines();
+      if (this.is("eof")) {
+        break;
+      }
+      statements.push(this.parseStatement());
+      this.consumeNewlines();
+    }
+    return statements;
+  }
+  parseStatement() {
+    if (this.is("identifier") && this.peek(1).type === "equal") {
+      const target = this.expect("identifier").value;
+      this.expect("equal");
+      return {
+        type: "assign",
+        target,
+        value: this.parseExpression()
+      };
+    }
+    return {
+      type: "expression",
+      expression: this.parseExpression()
+    };
+  }
+  parseExpression() {
+    let expression = this.parsePrimary();
+    while (true) {
+      if (this.match("dot")) {
+        const attribute = this.expect("identifier").value;
+        expression = {
+          type: "attribute",
+          object: expression,
+          attribute
+        };
+        continue;
+      }
+      if (this.match("lparen")) {
+        const { args, keywords } = this.parseCallArguments();
+        this.expect("rparen");
+        expression = {
+          type: "call",
+          callee: expression,
+          args,
+          keywords
+        };
+        continue;
+      }
+      break;
+    }
+    return expression;
+  }
+  parsePrimary() {
+    if (this.is("string")) {
+      return {
+        type: "string",
+        value: this.expect("string").value
+      };
+    }
+    if (this.is("identifier")) {
+      return {
+        type: "identifier",
+        name: this.expect("identifier").value
+      };
+    }
+    if (this.match("lbracket")) {
+      const elements = this.parseDelimitedExpressions("rbracket");
+      this.expect("rbracket");
+      return {
+        type: "list",
+        elements
+      };
+    }
+    if (this.match("lbrace")) {
+      const entries = [];
+      if (!this.is("rbrace")) {
+        do {
+          const key = this.parseExpression();
+          this.expect("colon");
+          const value = this.parseExpression();
+          entries.push({ key, value });
+        } while (this.match("comma") && !this.is("rbrace"));
+      }
+      this.expect("rbrace");
+      return {
+        type: "dict",
+        entries
+      };
+    }
+    if (this.match("lparen")) {
+      const elements = this.parseDelimitedExpressions("rparen");
+      this.expect("rparen");
+      return {
+        type: "tuple",
+        elements
+      };
+    }
+    throw new Error(`Unsupported Python expression near token "${this.current().type}".`);
+  }
+  parseDelimitedExpressions(endToken) {
+    const elements = [];
+    this.consumeNewlines();
+    if (this.is(endToken)) {
+      return elements;
+    }
+    do {
+      this.consumeNewlines();
+      if (this.is(endToken)) {
+        break;
+      }
+      elements.push(this.parseExpression());
+      this.consumeNewlines();
+    } while (this.match("comma"));
+    return elements;
+  }
+  parseCallArguments() {
+    const args = [];
+    const keywords = [];
+    this.consumeNewlines();
+    if (this.is("rparen")) {
+      return { args, keywords };
+    }
+    do {
+      this.consumeNewlines();
+      if (this.is("rparen")) {
+        break;
+      }
+      if (this.is("identifier") && this.peek(1).type === "equal") {
+        const name = this.expect("identifier").value;
+        this.expect("equal");
+        keywords.push({ name, value: this.parseExpression() });
+      } else {
+        args.push(this.parseExpression());
+      }
+      this.consumeNewlines();
+    } while (this.match("comma"));
+    return { args, keywords };
+  }
+  consumeNewlines() {
+    while (this.match("newline")) {
+      continue;
+    }
+  }
+  current() {
+    return this.tokens[this.position];
+  }
+  peek(offset) {
+    return this.tokens[this.position + offset] ?? { type: "eof" };
+  }
+  is(type) {
+    return this.current().type === type;
+  }
+  match(type) {
+    if (this.is(type)) {
+      this.position += 1;
+      return true;
+    }
+    return false;
+  }
+  expect(type) {
+    if (!this.is(type)) {
+      throw new Error(`Expected token "${type}" but found "${this.current().type}".`);
+    }
+    const token = this.current();
+    this.position += 1;
+    return token;
+  }
+};
+function resolveString(expression, variables) {
+  if (expression.type === "string") {
+    return expression.value.trim();
+  }
+  if (expression.type === "identifier") {
+    return variables.get(expression.name) ?? null;
+  }
+  return null;
+}
+function isSetupCallee(expression) {
+  if (expression.type === "identifier") {
+    return expression.name === "setup";
+  }
+  if (expression.type === "attribute") {
+    return expression.attribute === "setup";
+  }
+  return false;
+}
+function findSetupCall(expression) {
+  if (expression.type === "call" && isSetupCallee(expression.callee)) {
+    return expression;
+  }
+  if (expression.type === "call") {
+    return findSetupCall(expression.callee);
+  }
+  if (expression.type === "attribute") {
+    return findSetupCall(expression.object);
+  }
+  return null;
+}
+var SetupPyParser = class {
+  parse(_filePath, content) {
+    const parser = new Parser(tokenize(content));
+    const statements = parser.parseModule();
+    const variables = /* @__PURE__ */ new Map();
+    for (const statement of statements) {
+      if (statement.type === "assign") {
+        const resolvedValue = resolveString(statement.value, variables);
+        if (resolvedValue !== null) {
+          variables.set(statement.target, resolvedValue);
+        }
+      }
+    }
+    let setupCall = null;
+    for (const statement of statements) {
+      const expression = statement.type === "assign" ? statement.value : statement.expression;
+      const candidate = findSetupCall(expression);
+      if (candidate) {
+        setupCall = candidate;
+        break;
+      }
+    }
+    if (!setupCall) {
+      throw new Error("setup.py does not contain a supported setup(...) call.");
+    }
+    const keywordMap = new Map(setupCall.keywords.map((keyword) => [keyword.name, keyword.value]));
+    const packageName = keywordMap.has("name") ? resolveString(keywordMap.get("name"), variables) : null;
+    const version = keywordMap.has("version") ? resolveString(keywordMap.get("version"), variables) : null;
+    if (!packageName) {
+      throw new Error('setup.py is missing a static "name" value in setup(...).');
+    }
+    if (!version) {
+      throw new Error('setup.py is missing a static "version" value in setup(...).');
+    }
+    return new LocalPackageCandidate(new PackageName(packageName), new Version(version));
+  }
+};
+function parseSetupPy(content) {
+  const parsed = new SetupPyParser().parse("setup.py", content);
+  return {
+    packageName: parsed.packageName.value,
+    version: parsed.version?.value
+  };
+}
+
+// src/ecosystems/pypi/ecosystem.ts
+var PypiEcosystem = class extends BaseEcosystemHandler {
+  pyProjectParser = new PyProjectParser();
+  setupPyParser = new SetupPyParser();
+  registryClient = new PypiRegistryClient();
+  constructor() {
+    super("pypi", ["pyproject.toml", "setup.py"]);
+  }
+  parseFromFile(filePath, content) {
+    const fileName = import_node_path4.default.basename(filePath).toLowerCase();
+    if (fileName === "pyproject.toml") {
+      return this.pyProjectParser.parse(filePath, content);
+    }
+    return this.setupPyParser.parse(filePath, content);
+  }
+  async fetchPublishedVersionInternal(packageName, options = {}) {
+    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
+    return result.toString();
+  }
+};
+
+// src/ecosystems/ecosystem-registry.ts
+var SUPPORTED_FILE_LIST = "package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, and go.mod";
+var EcosystemRegistry = class {
+  handlers;
+  constructor(handlers) {
+    this.handlers = handlers;
+  }
+  detectRegistryFromFile(filePath) {
+    return this.getHandlerForFile(filePath).registry;
+  }
+  parseLocalPackageFile(filePath, versionPattern) {
+    return this.getHandlerForFile(filePath).parseLocalPackage(filePath, versionPattern);
+  }
+  parseLocalPackageContent(filePath, content, versionPattern) {
+    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
+  }
+  fetchPublishedVersion(registry, packageName, options) {
+    return this.getHandlerForRegistry(registry).fetchPublishedVersion(packageName, options);
+  }
+  getHandlerForFile(filePath) {
+    const handler2 = this.handlers.find((candidate) => candidate.supports(filePath));
+    if (!handler2) {
+      throw new Error(`Unable to detect a registry from "${filePath}". Supported files are ${SUPPORTED_FILE_LIST}.`);
+    }
+    return handler2;
+  }
+  getHandlerForRegistry(registry) {
+    const handler2 = this.handlers.find((candidate) => candidate.registry === registry);
+    if (!handler2) {
+      throw new Error(`Unsupported registry "${registry}".`);
+    }
+    return handler2;
+  }
+};
+var ecosystemRegistry = new EcosystemRegistry([
+  new NpmEcosystem(),
+  new PypiEcosystem(),
+  new MavenCentralEcosystem(),
+  new CargoEcosystem(),
+  new GoEcosystem()
+]);
+function detectRegistryFromFile(filePath) {
+  return ecosystemRegistry.detectRegistryFromFile(filePath);
+}
+function parseLocalPackageFile(filePath, versionPattern) {
+  return ecosystemRegistry.parseLocalPackageFile(filePath, versionPattern);
+}
+function parseLocalPackageContent(filePath, content, versionPattern) {
+  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
+}
+
+// src/utils/semver.ts
+var semver2 = __toESM(require_semver2());
+function compareSemverVersions(localVersion, publishedVersion) {
+  const normalizedLocal = semver2.valid(localVersion, { loose: true });
+  const normalizedPublished = semver2.valid(publishedVersion, { loose: true });
+  if (!normalizedLocal || !normalizedPublished) {
+    return {
+      comparable: false,
+      isHigher: false,
+      reason: `Non-semver version detected (local="${localVersion}", published="${publishedVersion}").`
+    };
+  }
+  return {
+    comparable: true,
+    isHigher: semver2.gt(normalizedLocal, normalizedPublished)
+  };
+}
+
+// src/utils/git.ts
+var import_node_child_process = require("node:child_process");
+var import_node_path5 = __toESM(require("node:path"));
+var import_node_util = require("node:util");
+var execFileAsync = (0, import_node_util.promisify)(import_node_child_process.execFile);
+function resolveGitCompareRef(rawCompareRef, context3) {
+  const explicitCompareRef = rawCompareRef.trim();
+  if (explicitCompareRef) {
+    return explicitCompareRef;
+  }
+  const pullRequestBaseSha = context3.payload.pull_request?.base?.sha?.trim();
+  if (pullRequestBaseSha) {
+    return pullRequestBaseSha;
+  }
+  const pullRequestBaseRef = context3.payload.pull_request?.base?.ref?.trim();
+  if (pullRequestBaseRef) {
+    return pullRequestBaseRef;
+  }
+  throw new Error('Input "compare-ref" is required when compare-source="git-ref" outside pull_request contexts.');
+}
+async function readFileAtGitRef(repoRoot, filePath, gitRef, options = {}) {
+  const relativePath = import_node_path5.default.relative(repoRoot, filePath);
+  if (!relativePath || relativePath.startsWith("..") || import_node_path5.default.isAbsolute(relativePath)) {
+    throw new Error(`File "${filePath}" must be inside the repository root "${repoRoot}".`);
+  }
+  const normalizedPath = relativePath.split(import_node_path5.default.sep).join("/");
+  const execFileImpl = options.execFileImpl ?? execFileAsync;
+  try {
+    const { stdout } = await execFileImpl("git", ["show", `${gitRef}:${normalizedPath}`], {
+      cwd: repoRoot,
+      encoding: "utf8",
+      maxBuffer: 1024 * 1024 * 5
+    });
+    return stdout;
+  } catch (error2) {
+    const suffix = error2 instanceof Error ? error2.message : String(error2);
+    throw new Error(`Unable to read "${normalizedPath}" from git ref "${gitRef}": ${suffix}`);
+  }
+}
+
+// src/application/compare-version-request.ts
+var import_node_path6 = __toESM(require("node:path"));
+var CompareVersionRequest = class {
+  cwd;
+  filePath;
+  compareFilePath;
+  packageNameOverride;
+  registry;
+  compareSource;
+  compareRef;
+  versionPattern;
+  compareSemver;
+  constructor(props) {
+    this.cwd = props.cwd;
+    this.filePath = import_node_path6.default.resolve(props.cwd, props.filePath);
+    this.compareFilePath = import_node_path6.default.resolve(props.cwd, props.compareFilePath || props.filePath);
+    this.packageNameOverride = props.packageNameOverride?.trim() || "";
+    this.registry = props.registry;
+    this.compareSource = props.compareSource;
+    this.compareRef = props.compareRef?.trim() || "";
+    this.versionPattern = props.versionPattern?.trim() || void 0;
+    this.compareSemver = props.compareSemver;
+  }
+};
+
+// src/application/action-output-mapper.ts
+function buildActionOutputs(params) {
+  return {
+    changed: params.changed,
+    localVersion: params.localVersion,
+    comparedVersion: params.comparedVersion,
+    publishedVersion: params.comparedVersion,
+    isHigher: params.isHigher,
+    registryDetected: params.registryDetected,
+    packageNameDetected: params.packageNameDetected,
+    comparisonSourceDetected: params.compareSource.value,
+    compareRefResolved: params.compareRefResolved,
+    compareFilePathResolved: params.compareFilePathResolved
+  };
+}
+
+// src/application/local-package-reader.ts
+async function readLocalPackage(request2) {
+  return parseLocalPackageFile(request2.filePath, request2.versionPattern);
 }
 
 // node_modules/.pnpm/@actions+github@9.1.0/node_modules/@actions/github/lib/context.js
@@ -25639,1481 +27158,108 @@ var GitHub = Octokit.plugin(restEndpointMethods, paginateRest).defaults(defaults
 // node_modules/.pnpm/@actions+github@9.1.0/node_modules/@actions/github/lib/github.js
 var context2 = new Context();
 
-// src/main.ts
-var import_node_path6 = __toESM(require("node:path"));
+// src/application/comparison-version-resolver.ts
+async function resolveComparisonVersion(request2, registryDetected, packageNameDetected) {
+  if (request2.compareSource.isRegistry()) {
+    const userAgent2 = `check-version-change/${context2.runId || "local"}`;
+    const headers = { "user-agent": userAgent2 };
+    return {
+      comparedVersion: await ecosystemRegistry.fetchPublishedVersion(registryDetected, packageNameDetected, { headers }),
+      registryDetected,
+      compareRefResolved: "",
+      compareFilePathResolved: ""
+    };
+  }
+  const compareRefResolved = resolveGitCompareRef(request2.compareRef, context2);
+  const compareContent = await readFileAtGitRef(request2.cwd, request2.compareFilePath, compareRefResolved);
+  const comparedPackage = await parseLocalPackageContent(request2.compareFilePath, compareContent, request2.versionPattern);
+  return {
+    comparedVersion: comparedPackage.version.value,
+    registryDetected: "",
+    compareRefResolved,
+    compareFilePathResolved: request2.compareFilePath
+  };
+}
 
-// src/domain/value-objects/package-name.ts
-var PackageName = class {
+// src/application/version-comparison-service.ts
+function compareVersions(localVersion, comparedVersion, compareSemver) {
+  const changed = !comparedVersion || localVersion.value !== comparedVersion;
+  if (!comparedVersion || !compareSemver) {
+    return {
+      changed,
+      isHigher: false
+    };
+  }
+  const comparison = compareSemverVersions(localVersion.value, comparedVersion);
+  return {
+    changed,
+    isHigher: comparison.isHigher,
+    warning: !comparison.comparable ? comparison.reason : void 0
+  };
+}
+
+// src/application/compare-version-use-case.ts
+function resolveRegistry(inputRegistry, filePath) {
+  if (inputRegistry === "auto") {
+    return detectRegistryFromFile(filePath);
+  }
+  if (inputRegistry !== "npm" && inputRegistry !== "pypi" && inputRegistry !== "maven-central" && inputRegistry !== "crates-io" && inputRegistry !== "go-proxy") {
+    throw new Error(`Unsupported registry "${inputRegistry}". Expected "auto", "npm", "pypi", "maven-central", "crates-io", or "go-proxy".`);
+  }
+  return inputRegistry;
+}
+async function executeCompareVersion(request2) {
+  const registryDetected = resolveRegistry(request2.registry, request2.filePath);
+  const localPackage = await readLocalPackage(request2);
+  const packageNameDetected = request2.packageNameOverride || localPackage.packageName.value;
+  if (!packageNameDetected) {
+    throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+  }
+  const resolvedComparison = await resolveComparisonVersion(request2, registryDetected, packageNameDetected);
+  const comparison = compareVersions(localPackage.version, resolvedComparison.comparedVersion, request2.compareSemver);
+  return {
+    outputs: buildActionOutputs({
+      changed: comparison.changed,
+      localVersion: localPackage.version.value,
+      comparedVersion: resolvedComparison.comparedVersion,
+      isHigher: comparison.isHigher,
+      registryDetected: resolvedComparison.registryDetected,
+      packageNameDetected,
+      compareSource: request2.compareSource,
+      compareRefResolved: resolvedComparison.compareRefResolved,
+      compareFilePathResolved: resolvedComparison.compareFilePathResolved
+    }),
+    warning: comparison.warning
+  };
+}
+async function compareVersion(request2) {
+  const result = await executeCompareVersion(request2);
+  return result.outputs;
+}
+
+// src/domain/value-objects/compare-source.ts
+var CompareSource = class _CompareSource {
   value;
   constructor(value) {
-    const normalized = value.trim();
-    if (!normalized) {
-      throw new Error("Package name cannot be empty.");
+    this.value = value;
+  }
+  static fromInput(rawValue) {
+    const normalized = rawValue.trim().toLowerCase();
+    if (!normalized || normalized === "registry") {
+      return new _CompareSource("registry");
     }
-    this.value = normalized;
-  }
-  toString() {
-    return this.value;
-  }
-};
-
-// src/ecosystems/base.ts
-var import_promises = require("node:fs/promises");
-var import_node_path = __toESM(require("node:path"));
-
-// src/domain/value-objects/local-package.ts
-var LocalPackage = class {
-  constructor(packageName, version) {
-    this.packageName = packageName;
-    this.version = version;
-  }
-  packageName;
-  version;
-};
-
-// src/domain/value-objects/version.ts
-var Version = class {
-  value;
-  constructor(value) {
-    const normalized = value.trim();
-    if (!normalized) {
-      throw new Error("Version cannot be empty.");
+    if (normalized === "git-ref") {
+      return new _CompareSource("git-ref");
     }
-    this.value = normalized;
+    throw new Error(`Unsupported compare-source "${rawValue}". Expected "registry" or "git-ref".`);
   }
-  equals(other) {
-    return this.value === other.value;
+  isRegistry() {
+    return this.value === "registry";
   }
-  toString() {
-    return this.value;
+  isGitRef() {
+    return this.value === "git-ref";
   }
 };
-
-// src/utils/version-pattern.ts
-function countCaptureGroups(pattern) {
-  let count = 0;
-  let escaped = false;
-  let inCharacterClass = false;
-  for (let index = 0; index < pattern.length; index += 1) {
-    const character = pattern[index];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (character === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (character === "[") {
-      inCharacterClass = true;
-      continue;
-    }
-    if (character === "]" && inCharacterClass) {
-      inCharacterClass = false;
-      continue;
-    }
-    if (inCharacterClass || character !== "(") {
-      continue;
-    }
-    const next = pattern[index + 1];
-    const nextTwo = pattern.slice(index + 1, index + 3);
-    if (next !== "?") {
-      count += 1;
-      continue;
-    }
-    if (nextTwo === "?<") {
-      count += 1;
-    }
-  }
-  return count;
-}
-function extractVersionFromPattern(content, pattern) {
-  if (countCaptureGroups(pattern) !== 1) {
-    throw new Error('The "version-pattern" input must contain exactly one capture group.');
-  }
-  let expression;
-  try {
-    expression = new RegExp(pattern, "m");
-  } catch (error2) {
-    throw new Error(`Invalid "version-pattern" regex: ${error2 instanceof Error ? error2.message : String(error2)}`);
-  }
-  const match = expression.exec(content);
-  if (!match || typeof match[1] !== "string" || match[1].trim() === "") {
-    throw new Error('The provided "version-pattern" did not match the file contents.');
-  }
-  return match[1].trim();
-}
-
-// src/ecosystems/base.ts
-var BaseEcosystemHandler = class {
-  registry;
-  supportedFileNames;
-  constructor(registry, supportedFileNames) {
-    this.registry = registry;
-    this.supportedFileNames = new Set(supportedFileNames.map((fileName) => fileName.toLowerCase()));
-  }
-  supports(filePath) {
-    return this.supportedFileNames.has(import_node_path.default.basename(filePath).toLowerCase());
-  }
-  async parseLocalPackage(filePath, versionPattern) {
-    const content = await (0, import_promises.readFile)(filePath, "utf8");
-    return this.parseLocalPackageContent(filePath, content, versionPattern);
-  }
-  async parseLocalPackageContent(filePath, content, versionPattern) {
-    const parsed = await this.parseFromFile(filePath, content);
-    if (versionPattern) {
-      return new LocalPackage(
-        parsed.packageName,
-        new Version(extractVersionFromPattern(content, versionPattern))
-      );
-    }
-    if (!parsed.version) {
-      throw new Error(`Unable to detect a local version from "${filePath}". Pass "version-pattern" for this file type.`);
-    }
-    return new LocalPackage(parsed.packageName, parsed.version);
-  }
-  fetchPublishedVersion(packageName, options) {
-    return this.fetchPublishedVersionInternal(packageName, options);
-  }
-};
-
-// src/domain/value-objects/local-package-candidate.ts
-var LocalPackageCandidate = class {
-  constructor(packageName, version) {
-    this.packageName = packageName;
-    this.version = version;
-  }
-  packageName;
-  version;
-};
-
-// src/ecosystems/pypi/toml.ts
-function stripComments(line) {
-  let result = "";
-  let inSingle = false;
-  let inDouble = false;
-  let escaped = false;
-  for (const character of line) {
-    if (escaped) {
-      result += character;
-      escaped = false;
-      continue;
-    }
-    if (character === "\\" && inDouble) {
-      result += character;
-      escaped = true;
-      continue;
-    }
-    if (character === '"' && !inSingle) {
-      inDouble = !inDouble;
-      result += character;
-      continue;
-    }
-    if (character === "'" && !inDouble) {
-      inSingle = !inSingle;
-      result += character;
-      continue;
-    }
-    if (character === "#" && !inSingle && !inDouble) {
-      break;
-    }
-    result += character;
-  }
-  return result.trim();
-}
-function splitTopLevel(input, separator) {
-  const parts = [];
-  let current = "";
-  let depth = 0;
-  let inSingle = false;
-  let inDouble = false;
-  let escaped = false;
-  for (const character of input) {
-    if (escaped) {
-      current += character;
-      escaped = false;
-      continue;
-    }
-    if (character === "\\" && inDouble) {
-      current += character;
-      escaped = true;
-      continue;
-    }
-    if (character === '"' && !inSingle) {
-      inDouble = !inDouble;
-      current += character;
-      continue;
-    }
-    if (character === "'" && !inDouble) {
-      inSingle = !inSingle;
-      current += character;
-      continue;
-    }
-    if (!inSingle && !inDouble) {
-      if (character === "[" || character === "{") {
-        depth += 1;
-      } else if (character === "]" || character === "}") {
-        depth -= 1;
-      } else if (character === separator && depth === 0) {
-        parts.push(current.trim());
-        current = "";
-        continue;
-      }
-    }
-    current += character;
-  }
-  if (current.trim()) {
-    parts.push(current.trim());
-  }
-  return parts;
-}
-function parseStringValue(input) {
-  if (input.length < 2) {
-    throw new Error(`Invalid TOML string: ${input}`);
-  }
-  const quote = input[0];
-  const body = input.slice(1, -1);
-  if (quote === "'") {
-    return body;
-  }
-  return body.replace(/\\n/g, "\n").replace(/\\t/g, "	").replace(/\\"/g, '"').replace(/\\\\/g, "\\");
-}
-function parseValue(rawValue) {
-  const value = rawValue.trim();
-  if (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'")) {
-    return parseStringValue(value);
-  }
-  if (value === "true" || value === "false") {
-    return value === "true";
-  }
-  if (value.startsWith("[") && value.endsWith("]")) {
-    const inner = value.slice(1, -1).trim();
-    if (!inner) {
-      return [];
-    }
-    return splitTopLevel(inner, ",").map((entry) => parseValue(entry));
-  }
-  if (/^-?\d+(\.\d+)?$/.test(value)) {
-    return Number(value);
-  }
-  throw new Error(`Unsupported TOML value: ${value}`);
-}
-function ensureTable(root, pathParts) {
-  let current = root;
-  for (const part of pathParts) {
-    const existing = current[part];
-    if (existing == null) {
-      current[part] = {};
-    } else if (typeof existing !== "object" || Array.isArray(existing)) {
-      throw new Error(`TOML key "${pathParts.join(".")}" conflicts with a non-table value.`);
-    }
-    current = current[part];
-  }
-  return current;
-}
-function parseToml(content) {
-  const root = {};
-  let currentTable = root;
-  const lines = content.split(/\r?\n/);
-  for (let lineNumber = 0; lineNumber < lines.length; lineNumber += 1) {
-    const cleaned = stripComments(lines[lineNumber]);
-    if (!cleaned) {
-      continue;
-    }
-    if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
-      if (cleaned.startsWith("[[")) {
-        throw new Error("Array-of-table syntax is not supported by this action parser.");
-      }
-      const tableName = cleaned.slice(1, -1).trim();
-      if (!tableName) {
-        throw new Error(`Invalid TOML table declaration on line ${lineNumber + 1}.`);
-      }
-      currentTable = ensureTable(root, tableName.split(".").map((part) => part.trim()));
-      continue;
-    }
-    const equalsIndex = cleaned.indexOf("=");
-    if (equalsIndex <= 0) {
-      throw new Error(`Invalid TOML assignment on line ${lineNumber + 1}.`);
-    }
-    const key = cleaned.slice(0, equalsIndex).trim();
-    const rawValue = cleaned.slice(equalsIndex + 1).trim();
-    if (!key) {
-      throw new Error(`Invalid TOML key on line ${lineNumber + 1}.`);
-    }
-    currentTable[key] = parseValue(rawValue);
-  }
-  return root;
-}
-function getTomlString(table, path7) {
-  let current = table;
-  for (const part of path7) {
-    if (!current || typeof current !== "object" || Array.isArray(current) || !(part in current)) {
-      return void 0;
-    }
-    current = current[part];
-  }
-  return typeof current === "string" && current.trim() ? current.trim() : void 0;
-}
-
-// src/ecosystems/cargo/parser.ts
-var CargoTomlParser = class {
-  parse(_filePath, content) {
-    const document = parseToml(content);
-    const packageName = getTomlString(document, ["package", "name"]);
-    const packageVersion = getTomlString(document, ["package", "version"]);
-    const workspaceVersion = getTomlString(document, ["workspace", "package", "version"]);
-    if (!packageName) {
-      throw new Error("Cargo.toml is missing [package].name.");
-    }
-    const version = packageVersion ?? workspaceVersion;
-    if (!version) {
-      throw new Error('Cargo.toml is missing [package].version. If the crate version is inherited or generated, pass "version-pattern".');
-    }
-    return new LocalPackageCandidate(new PackageName(packageName), new Version(version));
-  }
-};
-function parseCargoToml(content) {
-  const parsed = new CargoTomlParser().parse("Cargo.toml", content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/cargo/registry.ts
-var semver = __toESM(require_semver2());
-
-// src/domain/value-objects/published-version.ts
-var PublishedVersion = class {
-  constructor(version) {
-    this.version = version;
-  }
-  version;
-  toString() {
-    return this.version?.value ?? "";
-  }
-};
-
-// src/ecosystems/cargo/registry.ts
-function getCrateIndexPath(packageName) {
-  const lower = packageName.toLowerCase();
-  if (!/^[a-z0-9_-]+$/.test(lower)) {
-    throw new Error(`Unsupported crate name "${packageName}".`);
-  }
-  if (lower.length === 1) {
-    return `1/${lower}`;
-  }
-  if (lower.length === 2) {
-    return `2/${lower}`;
-  }
-  if (lower.length === 3) {
-    return `3/${lower[0]}/${lower}`;
-  }
-  return `${lower.slice(0, 2)}/${lower.slice(2, 4)}/${lower}`;
-}
-var CratesIoRegistryClient = class {
-  registry = "crates-io";
-  async fetchPublishedVersion(packageName, options = {}) {
-    const url = `https://index.crates.io/${getCrateIndexPath(packageName.value)}`;
-    const fetchImpl = options.fetchImpl ?? fetch;
-    let lastError;
-    for (let attempt = 1; attempt <= 2; attempt += 1) {
-      try {
-        const response = await fetchImpl(url, {
-          headers: {
-            accept: "text/plain",
-            ...options.headers
-          }
-        });
-        if ([401, 403, 404].includes(response.status)) {
-          return new PublishedVersion(null);
-        }
-        if (!response.ok) {
-          if (response.status >= 500 && attempt === 1) {
-            continue;
-          }
-          throw new Error(`Request failed with status ${response.status} ${response.statusText}`.trim());
-        }
-        const body = await response.text();
-        const entries = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => JSON.parse(line)).filter((entry) => typeof entry.vers === "string" && !entry.yanked);
-        const versions = entries.map((entry) => semver.valid(entry.vers ?? "", { loose: true })).filter((entry) => Boolean(entry)).sort(semver.compare);
-        return new PublishedVersion(versions.length > 0 ? new Version(versions[versions.length - 1]) : null);
-      } catch (error2) {
-        lastError = error2;
-        if (attempt === 2) {
-          break;
-        }
-      }
-    }
-    throw new Error(`Unable to fetch registry metadata from ${url}: ${lastError instanceof Error ? lastError.message : String(lastError)}`);
-  }
-};
-async function fetchCratesIoPublishedVersion(packageName, options = {}) {
-  const result = await new CratesIoRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
-  return { version: result.version?.value ?? null };
-}
-
-// src/ecosystems/cargo/ecosystem.ts
-var CargoEcosystem = class extends BaseEcosystemHandler {
-  parser = new CargoTomlParser();
-  registryClient = new CratesIoRegistryClient();
-  constructor() {
-    super("crates-io", ["cargo.toml"]);
-  }
-  parseFromFile(filePath, content) {
-    return this.parser.parse(filePath, content);
-  }
-  async fetchPublishedVersionInternal(packageName, options = {}) {
-    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
-    return result.toString();
-  }
-};
-
-// src/ecosystems/go/parser.ts
-var GoModParser = class {
-  parse(_filePath, content) {
-    const match = content.match(/^\s*module\s+([^\s]+)\s*$/m);
-    const packageName = match?.[1]?.trim();
-    if (!packageName) {
-      throw new Error("go.mod is missing a valid module directive.");
-    }
-    return new LocalPackageCandidate(new PackageName(packageName));
-  }
-};
-function parseGoMod(content) {
-  const parsed = new GoModParser().parse("go.mod", content);
-  return {
-    packageName: parsed.packageName.value
-  };
-}
-
-// src/utils/http.ts
-async function fetchJsonWithRetry(url, options = {}) {
-  const fetchImpl = options.fetchImpl ?? fetch;
-  const missingStatusCodes = new Set(options.missingStatusCodes ?? [404]);
-  let lastError;
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
-    try {
-      const response = await fetchImpl(url, {
-        headers: {
-          accept: "application/json",
-          ...options.headers
-        }
-      });
-      if (missingStatusCodes.has(response.status)) {
-        return { found: false, data: null };
-      }
-      if (response.ok) {
-        return {
-          found: true,
-          data: await response.json()
-        };
-      }
-      if (response.status >= 500 && attempt === 1) {
-        continue;
-      }
-      throw new Error(`Request failed with status ${response.status} ${response.statusText}`.trim());
-    } catch (error2) {
-      lastError = error2;
-      if (attempt === 2) {
-        break;
-      }
-    }
-  }
-  const suffix = lastError instanceof Error ? lastError.message : String(lastError);
-  throw new Error(`Unable to fetch registry metadata from ${url}: ${suffix}`);
-}
-
-// src/ecosystems/go/registry.ts
-function escapeGoModulePath(modulePath) {
-  return modulePath.replace(/[A-Z]/g, (character) => `!${character.toLowerCase()}`);
-}
-var GoProxyRegistryClient = class {
-  registry = "go-proxy";
-  async fetchPublishedVersion(packageName, options = {}) {
-    const escapedPath = escapeGoModulePath(packageName.value);
-    const url = `https://proxy.golang.org/${escapedPath}/@latest`;
-    const response = await fetchJsonWithRetry(url, {
-      ...options,
-      missingStatusCodes: [401, 403, 404]
-    });
-    if (!response.found) {
-      return new PublishedVersion(null);
-    }
-    const version = response.data?.Version?.trim();
-    return new PublishedVersion(version ? new Version(version) : null);
-  }
-};
-async function fetchGoProxyPublishedVersion(packageName, options = {}) {
-  const result = await new GoProxyRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
-  return { version: result.version?.value ?? null };
-}
-
-// src/ecosystems/go/ecosystem.ts
-var GoEcosystem = class extends BaseEcosystemHandler {
-  parser = new GoModParser();
-  registryClient = new GoProxyRegistryClient();
-  constructor() {
-    super("go-proxy", ["go.mod"]);
-  }
-  parseFromFile(filePath, content) {
-    return this.parser.parse(filePath, content);
-  }
-  async fetchPublishedVersionInternal(packageName, options = {}) {
-    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
-    return result.toString();
-  }
-};
-
-// src/ecosystems/maven-central/ecosystem.ts
-var import_node_path3 = __toESM(require("node:path"));
-
-// src/ecosystems/maven-central/gradle.ts
-var import_promises2 = require("node:fs/promises");
-var import_node_path2 = __toESM(require("node:path"));
-
-// src/ecosystems/maven-central/properties.ts
-function parseProperties(content) {
-  const result = {};
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#") || line.startsWith("!")) {
-      continue;
-    }
-    const separatorIndex = line.search(/[:=]/);
-    if (separatorIndex < 0) {
-      continue;
-    }
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-    if (key) {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-// src/ecosystems/maven-central/gradle.ts
-function stripComments2(content) {
-  return content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-}
-function readQuotedValue(value) {
-  const match = value.match(/^["']([^"']+)["']/);
-  return match?.[1]?.trim();
-}
-function resolveGradleValue(rawValue, variables) {
-  if (!rawValue) {
-    return void 0;
-  }
-  const trimmed = rawValue.trim();
-  const quoted = readQuotedValue(trimmed);
-  if (quoted) {
-    return quoted;
-  }
-  const propertyAccess = trimmed.match(/^(?:project\.)?(?:findProperty|property)\(["']([^"']+)["']\)$/);
-  if (propertyAccess) {
-    return variables[propertyAccess[1]];
-  }
-  const simpleIdentifier = trimmed.match(/^[A-Za-z_][A-Za-z0-9_.-]*$/);
-  if (simpleIdentifier) {
-    const key = simpleIdentifier[0];
-    return variables[key] ?? variables[key.replace(/^project\./, "")];
-  }
-  return void 0;
-}
-function collectAssignments(content, variables) {
-  const assignments = /* @__PURE__ */ new Map();
-  const patterns = [
-    /^\s*(group|version|archivesBaseName)\s*=\s*(.+)$/gm,
-    /^\s*set(Group|Version|ArchivesBaseName)\((.+)\)\s*$/gm
-  ];
-  for (const pattern of patterns) {
-    for (const match of content.matchAll(pattern)) {
-      const rawKey = match[1];
-      const key = rawKey[0].toLowerCase() + rawKey.slice(1);
-      const resolved = resolveGradleValue(match[2], variables);
-      if (resolved) {
-        assignments.set(key, resolved);
-      }
-    }
-  }
-  const archivesNameBlockMatch = content.match(/base\s*\{[\s\S]*?archivesName\s*=\s*(.+?)\r?\n[\s\S]*?\}/m);
-  if (archivesNameBlockMatch) {
-    const archivesName = resolveGradleValue(archivesNameBlockMatch[1], variables);
-    if (archivesName) {
-      assignments.set("archivesBaseName", archivesName);
-    }
-  }
-  return assignments;
-}
-async function detectGradleProjectName(filePath) {
-  const projectDirectory = import_node_path2.default.dirname(filePath);
-  const candidates = ["settings.gradle", "settings.gradle.kts"];
-  for (const candidate of candidates) {
-    try {
-      const content = await (0, import_promises2.readFile)(import_node_path2.default.join(projectDirectory, candidate), "utf8");
-      const match = content.match(/rootProject\.name\s*=\s*["']([^"']+)["']/);
-      if (match?.[1]?.trim()) {
-        return match[1].trim();
-      }
-    } catch {
-      continue;
-    }
-  }
-  return import_node_path2.default.basename(projectDirectory);
-}
-var GradleBuildParser = class {
-  async parse(filePath, content) {
-    const strippedContent = stripComments2(content);
-    const projectDirectory = import_node_path2.default.dirname(filePath);
-    let properties = {};
-    try {
-      properties = parseProperties(await (0, import_promises2.readFile)(import_node_path2.default.join(projectDirectory, "gradle.properties"), "utf8"));
-    } catch {
-      properties = {};
-    }
-    const assignments = collectAssignments(strippedContent, properties);
-    const groupId = assignments.get("group");
-    const version = assignments.get("version");
-    const artifactId = assignments.get("archivesBaseName") ?? await detectGradleProjectName(filePath);
-    if (!groupId) {
-      throw new Error('build.gradle is missing a static or gradle.properties-backed "group" value.');
-    }
-    if (!version) {
-      throw new Error('build.gradle is missing a static or gradle.properties-backed "version" value.');
-    }
-    if (!artifactId) {
-      throw new Error('Unable to determine the Gradle artifact name. Set archivesBaseName, rootProject.name, or pass "package-name".');
-    }
-    return new LocalPackageCandidate(
-      new PackageName(`${groupId}:${artifactId}`),
-      new Version(version)
-    );
-  }
-};
-async function parseGradleBuildFile(filePath) {
-  const content = await (0, import_promises2.readFile)(filePath, "utf8");
-  const parsed = await new GradleBuildParser().parse(filePath, content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/maven-central/xml.ts
-function decodeXmlText(value) {
-  return value.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
-}
-function normalizeTagName(name) {
-  const trimmed = name.trim();
-  const colonIndex = trimmed.indexOf(":");
-  return colonIndex >= 0 ? trimmed.slice(colonIndex + 1) : trimmed;
-}
-function parseXml(content) {
-  const sanitized = content.replace(/<\?xml[\s\S]*?\?>/g, "").replace(/<!DOCTYPE[\s\S]*?>/g, "").replace(/<!--[\s\S]*?-->/g, "");
-  const root = { name: "__root__", children: [], text: "" };
-  const stack = [root];
-  const tokenPattern = /<[^>]+>|[^<]+/g;
-  for (const token of sanitized.match(tokenPattern) ?? []) {
-    if (!token) {
-      continue;
-    }
-    if (!token.startsWith("<")) {
-      const text = decodeXmlText(token).trim();
-      if (text) {
-        const current = stack[stack.length - 1];
-        current.text = current.text ? `${current.text} ${text}` : text;
-      }
-      continue;
-    }
-    if (token.startsWith("</")) {
-      const tagName2 = normalizeTagName(token.slice(2, -1));
-      const current = stack.pop();
-      if (!current || current.name !== tagName2) {
-        throw new Error(`Malformed XML: unexpected closing tag </${tagName2}>.`);
-      }
-      continue;
-    }
-    if (token.startsWith("<!")) {
-      continue;
-    }
-    const selfClosing = token.endsWith("/>");
-    const inner = token.slice(1, selfClosing ? -2 : -1).trim();
-    const tagName = normalizeTagName(inner.split(/\s+/, 1)[0]);
-    const node = { name: tagName, children: [], text: "" };
-    stack[stack.length - 1].children.push(node);
-    if (!selfClosing) {
-      stack.push(node);
-    }
-  }
-  if (stack.length !== 1 || root.children.length !== 1) {
-    throw new Error("Malformed XML: document structure is invalid.");
-  }
-  return root.children[0];
-}
-function getChild(node, childName) {
-  return node.children.find((child) => child.name === childName);
-}
-function getChildText(node, childName) {
-  const child = getChild(node, childName);
-  return child?.text?.trim() || void 0;
-}
-
-// src/ecosystems/maven-central/pom.ts
-function collectProperties(projectNode) {
-  const propertiesNode = getChild(projectNode, "properties");
-  const properties = {};
-  if (!propertiesNode) {
-    return properties;
-  }
-  for (const child of propertiesNode.children) {
-    if (child.text.trim()) {
-      properties[child.name] = child.text.trim();
-    }
-  }
-  return properties;
-}
-function resolvePlaceholders(value, properties) {
-  if (!value) {
-    return void 0;
-  }
-  let resolved = value;
-  for (let index = 0; index < 10; index += 1) {
-    const next = resolved.replace(/\$\{([^}]+)\}/g, (_, propertyName) => properties[propertyName] ?? `\${${propertyName}}`);
-    if (next === resolved) {
-      break;
-    }
-    resolved = next;
-  }
-  return resolved;
-}
-var PomXmlParser = class {
-  parse(_filePath, content) {
-    const document = parseXml(content);
-    if (document.name !== "project") {
-      throw new Error("pom.xml must have <project> as the root element.");
-    }
-    const parentNode = getChild(document, "parent");
-    const projectArtifactId = getChildText(document, "artifactId");
-    const parentGroupId = getChildText(parentNode ?? document, "groupId");
-    const parentVersion = getChildText(parentNode ?? document, "version");
-    const projectGroupId = getChildText(document, "groupId") ?? parentGroupId;
-    const projectVersion = getChildText(document, "version") ?? parentVersion;
-    const properties = collectProperties(document);
-    if (parentGroupId) {
-      properties["parent.groupId"] = parentGroupId;
-    }
-    if (parentVersion) {
-      properties["parent.version"] = parentVersion;
-    }
-    if (projectGroupId) {
-      properties["project.groupId"] = projectGroupId;
-      properties["groupId"] = projectGroupId;
-    }
-    if (projectArtifactId) {
-      properties["project.artifactId"] = projectArtifactId;
-      properties["artifactId"] = projectArtifactId;
-    }
-    if (projectVersion) {
-      properties["project.version"] = projectVersion;
-      properties["version"] = projectVersion;
-    }
-    const groupId = resolvePlaceholders(projectGroupId, properties)?.trim();
-    const artifactId = resolvePlaceholders(projectArtifactId, properties)?.trim();
-    const version = resolvePlaceholders(projectVersion, properties)?.trim();
-    if (!groupId) {
-      throw new Error("pom.xml is missing a resolvable <groupId>.");
-    }
-    if (!artifactId) {
-      throw new Error("pom.xml is missing a resolvable <artifactId>.");
-    }
-    if (!version) {
-      throw new Error("pom.xml is missing a resolvable <version>.");
-    }
-    return new LocalPackageCandidate(
-      new PackageName(`${groupId}:${artifactId}`),
-      new Version(version)
-    );
-  }
-};
-function parsePomXml(content) {
-  const parsed = new PomXmlParser().parse("pom.xml", content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/maven-central/registry.ts
-function parseCoordinates(packageName) {
-  const parts = packageName.split(":");
-  if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
-    throw new Error('Maven Central lookups require "package-name" in "groupId:artifactId" format.');
-  }
-  return {
-    groupId: parts[0].trim(),
-    artifactId: parts[1].trim()
-  };
-}
-var MavenCentralRegistryClient = class {
-  registry = "maven-central";
-  async fetchPublishedVersion(packageName, options = {}) {
-    const { groupId, artifactId } = parseCoordinates(packageName.value);
-    const query = encodeURIComponent(`g:${groupId} AND a:${artifactId}`);
-    const url = `https://search.maven.org/solrsearch/select?q=${query}&rows=1&wt=json`;
-    const response = await fetchJsonWithRetry(url, {
-      ...options,
-      missingStatusCodes: [401, 403, 404]
-    });
-    if (!response.found) {
-      return new PublishedVersion(null);
-    }
-    const version = response.data?.response?.docs?.[0]?.latestVersion?.trim();
-    return new PublishedVersion(version ? new Version(version) : null);
-  }
-};
-async function fetchMavenCentralPublishedVersion(packageName, options = {}) {
-  const result = await new MavenCentralRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
-  return { version: result.version?.value ?? null };
-}
-
-// src/ecosystems/maven-central/ecosystem.ts
-var MavenCentralEcosystem = class extends BaseEcosystemHandler {
-  gradleParser = new GradleBuildParser();
-  pomParser = new PomXmlParser();
-  registryClient = new MavenCentralRegistryClient();
-  constructor() {
-    super("maven-central", ["pom.xml", "build.gradle", "build.gradle.kts"]);
-  }
-  parseFromFile(filePath, content) {
-    const fileName = import_node_path3.default.basename(filePath).toLowerCase();
-    if (fileName === "pom.xml") {
-      return this.pomParser.parse(filePath, content);
-    }
-    return this.gradleParser.parse(filePath, content);
-  }
-  async fetchPublishedVersionInternal(packageName, options = {}) {
-    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
-    return result.toString();
-  }
-};
-
-// src/ecosystems/npm/parser.ts
-var NpmPackageParser = class {
-  parse(_filePath, content) {
-    let parsed;
-    try {
-      parsed = JSON.parse(content);
-    } catch (error2) {
-      throw new Error(`Invalid package.json: ${error2 instanceof Error ? error2.message : String(error2)}`);
-    }
-    if (!parsed || typeof parsed !== "object") {
-      throw new Error("Invalid package.json: expected a JSON object.");
-    }
-    const candidate = parsed;
-    const packageName = typeof candidate.name === "string" ? candidate.name.trim() : "";
-    const version = typeof candidate.version === "string" ? candidate.version.trim() : "";
-    if (!packageName) {
-      throw new Error('package.json is missing a non-empty "name" field.');
-    }
-    if (!version) {
-      throw new Error('package.json is missing a non-empty "version" field.');
-    }
-    return new LocalPackageCandidate(
-      new PackageName(packageName),
-      new Version(version)
-    );
-  }
-};
-function parsePackageJson(content) {
-  const parsed = new NpmPackageParser().parse("package.json", content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/npm/registry.ts
-var NpmRegistryClient = class {
-  registry = "npm";
-  async fetchPublishedVersion(packageName, options = {}) {
-    const encodedName = encodeURIComponent(packageName.value);
-    const response = await fetchJsonWithRetry(`https://registry.npmjs.org/${encodedName}`, {
-      ...options,
-      missingStatusCodes: [401, 403, 404]
-    });
-    if (!response.found) {
-      return new PublishedVersion(null);
-    }
-    const version = response.data?.["dist-tags"]?.latest?.trim();
-    return new PublishedVersion(version ? new Version(version) : null);
-  }
-};
-async function fetchNpmPublishedVersion(packageName, options = {}) {
-  const result = await new NpmRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
-  return { version: result.version?.value ?? null };
-}
-
-// src/ecosystems/npm/ecosystem.ts
-var NpmEcosystem = class extends BaseEcosystemHandler {
-  parser = new NpmPackageParser();
-  registryClient = new NpmRegistryClient();
-  constructor() {
-    super("npm", ["package.json"]);
-  }
-  parseFromFile(filePath, content) {
-    return this.parser.parse(filePath, content);
-  }
-  async fetchPublishedVersionInternal(packageName, options = {}) {
-    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
-    return result.toString();
-  }
-};
-
-// src/ecosystems/pypi/ecosystem.ts
-var import_node_path4 = __toESM(require("node:path"));
-
-// src/ecosystems/pypi/pyproject.ts
-var PyProjectParser = class {
-  parse(_filePath, content) {
-    const document = parseToml(content);
-    const projectName = getTomlString(document, ["project", "name"]);
-    const projectVersion = getTomlString(document, ["project", "version"]);
-    if (projectName && projectVersion) {
-      return new LocalPackageCandidate(new PackageName(projectName), new Version(projectVersion));
-    }
-    const poetryName = getTomlString(document, ["tool", "poetry", "name"]);
-    const poetryVersion = getTomlString(document, ["tool", "poetry", "version"]);
-    if (poetryName && poetryVersion) {
-      return new LocalPackageCandidate(new PackageName(poetryName), new Version(poetryVersion));
-    }
-    if (projectName && !projectVersion) {
-      throw new Error("pyproject.toml is missing [project].version and no [tool.poetry].version fallback was found.");
-    }
-    throw new Error("Unable to detect package name and version from pyproject.toml.");
-  }
-};
-function parsePyProjectToml(content) {
-  const parsed = new PyProjectParser().parse("pyproject.toml", content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/pypi/registry.ts
-var PypiRegistryClient = class {
-  registry = "pypi";
-  async fetchPublishedVersion(packageName, options = {}) {
-    const encodedName = encodeURIComponent(packageName.value);
-    const response = await fetchJsonWithRetry(`https://pypi.org/pypi/${encodedName}/json`, {
-      ...options,
-      missingStatusCodes: [401, 403, 404]
-    });
-    if (!response.found) {
-      return new PublishedVersion(null);
-    }
-    const version = response.data?.info?.version?.trim();
-    return new PublishedVersion(version ? new Version(version) : null);
-  }
-};
-async function fetchPypiPublishedVersion(packageName, options = {}) {
-  const result = await new PypiRegistryClient().fetchPublishedVersion(new PackageName(packageName), options);
-  return { version: result.version?.value ?? null };
-}
-
-// src/ecosystems/pypi/setup-py.ts
-function isIdentifierStart(character) {
-  return /[A-Za-z_]/.test(character);
-}
-function isIdentifierPart(character) {
-  return /[A-Za-z0-9_]/.test(character);
-}
-function readString(source, start) {
-  let index = start;
-  while (/[rRuUbBfF]/.test(source[index] ?? "")) {
-    index += 1;
-  }
-  const quote = source[index];
-  if (quote !== "'" && quote !== '"') {
-    throw new Error(`Invalid Python string prefix near: ${source.slice(start, start + 20)}`);
-  }
-  const triple = source.slice(index, index + 3) === quote.repeat(3);
-  const delimiterLength = triple ? 3 : 1;
-  let cursor = index + delimiterLength;
-  let result = "";
-  while (cursor < source.length) {
-    if (!triple && source[cursor] === "\\") {
-      const escaped = source[cursor + 1];
-      const mapped = escaped === "n" ? "\n" : escaped === "t" ? "	" : escaped === quote ? quote : escaped;
-      result += mapped;
-      cursor += 2;
-      continue;
-    }
-    if (source.slice(cursor, cursor + delimiterLength) === quote.repeat(delimiterLength)) {
-      return {
-        value: result,
-        nextIndex: cursor + delimiterLength
-      };
-    }
-    result += source[cursor];
-    cursor += 1;
-  }
-  throw new Error("Unterminated Python string literal.");
-}
-function tokenize(source) {
-  const tokens = [];
-  let index = 0;
-  while (index < source.length) {
-    const character = source[index];
-    if (character === " " || character === "	" || character === "\r") {
-      index += 1;
-      continue;
-    }
-    if (character === "\n" || character === ";") {
-      tokens.push({ type: "newline" });
-      index += 1;
-      continue;
-    }
-    if (character === "#") {
-      while (index < source.length && source[index] !== "\n") {
-        index += 1;
-      }
-      continue;
-    }
-    if (isIdentifierStart(character)) {
-      if ((source[index + 1] === '"' || source[index + 1] === "'") && /[rRuUbBfF]/.test(character)) {
-        const { value, nextIndex } = readString(source, index);
-        tokens.push({ type: "string", value });
-        index = nextIndex;
-        continue;
-      }
-      let end = index + 1;
-      while (end < source.length && isIdentifierPart(source[end])) {
-        end += 1;
-      }
-      tokens.push({ type: "identifier", value: source.slice(index, end) });
-      index = end;
-      continue;
-    }
-    if (character === '"' || character === "'") {
-      const { value, nextIndex } = readString(source, index);
-      tokens.push({ type: "string", value });
-      index = nextIndex;
-      continue;
-    }
-    if (/\d/.test(character)) {
-      let end = index + 1;
-      while (end < source.length && /[\d.]/.test(source[end])) {
-        end += 1;
-      }
-      tokens.push({ type: "number", value: source.slice(index, end) });
-      index = end;
-      continue;
-    }
-    const singleCharacterTokens = {
-      "(": "lparen",
-      ")": "rparen",
-      "[": "lbracket",
-      "]": "rbracket",
-      "{": "lbrace",
-      "}": "rbrace",
-      ",": "comma",
-      ".": "dot",
-      ":": "colon",
-      "=": "equal"
-    };
-    const tokenType = singleCharacterTokens[character];
-    if (tokenType) {
-      tokens.push({ type: tokenType });
-      index += 1;
-      continue;
-    }
-    throw new Error(`Unsupported Python syntax near "${source.slice(index, index + 20)}"`);
-  }
-  tokens.push({ type: "eof" });
-  return tokens;
-}
-var Parser = class {
-  tokens;
-  position = 0;
-  constructor(tokens) {
-    this.tokens = tokens;
-  }
-  parseModule() {
-    const statements = [];
-    while (!this.is("eof")) {
-      this.consumeNewlines();
-      if (this.is("eof")) {
-        break;
-      }
-      statements.push(this.parseStatement());
-      this.consumeNewlines();
-    }
-    return statements;
-  }
-  parseStatement() {
-    if (this.is("identifier") && this.peek(1).type === "equal") {
-      const target = this.expect("identifier").value;
-      this.expect("equal");
-      return {
-        type: "assign",
-        target,
-        value: this.parseExpression()
-      };
-    }
-    return {
-      type: "expression",
-      expression: this.parseExpression()
-    };
-  }
-  parseExpression() {
-    let expression = this.parsePrimary();
-    while (true) {
-      if (this.match("dot")) {
-        const attribute = this.expect("identifier").value;
-        expression = {
-          type: "attribute",
-          object: expression,
-          attribute
-        };
-        continue;
-      }
-      if (this.match("lparen")) {
-        const { args, keywords } = this.parseCallArguments();
-        this.expect("rparen");
-        expression = {
-          type: "call",
-          callee: expression,
-          args,
-          keywords
-        };
-        continue;
-      }
-      break;
-    }
-    return expression;
-  }
-  parsePrimary() {
-    if (this.is("string")) {
-      return {
-        type: "string",
-        value: this.expect("string").value
-      };
-    }
-    if (this.is("identifier")) {
-      return {
-        type: "identifier",
-        name: this.expect("identifier").value
-      };
-    }
-    if (this.match("lbracket")) {
-      const elements = this.parseDelimitedExpressions("rbracket");
-      this.expect("rbracket");
-      return {
-        type: "list",
-        elements
-      };
-    }
-    if (this.match("lbrace")) {
-      const entries = [];
-      if (!this.is("rbrace")) {
-        do {
-          const key = this.parseExpression();
-          this.expect("colon");
-          const value = this.parseExpression();
-          entries.push({ key, value });
-        } while (this.match("comma") && !this.is("rbrace"));
-      }
-      this.expect("rbrace");
-      return {
-        type: "dict",
-        entries
-      };
-    }
-    if (this.match("lparen")) {
-      const elements = this.parseDelimitedExpressions("rparen");
-      this.expect("rparen");
-      return {
-        type: "tuple",
-        elements
-      };
-    }
-    throw new Error(`Unsupported Python expression near token "${this.current().type}".`);
-  }
-  parseDelimitedExpressions(endToken) {
-    const elements = [];
-    this.consumeNewlines();
-    if (this.is(endToken)) {
-      return elements;
-    }
-    do {
-      this.consumeNewlines();
-      if (this.is(endToken)) {
-        break;
-      }
-      elements.push(this.parseExpression());
-      this.consumeNewlines();
-    } while (this.match("comma"));
-    return elements;
-  }
-  parseCallArguments() {
-    const args = [];
-    const keywords = [];
-    this.consumeNewlines();
-    if (this.is("rparen")) {
-      return { args, keywords };
-    }
-    do {
-      this.consumeNewlines();
-      if (this.is("rparen")) {
-        break;
-      }
-      if (this.is("identifier") && this.peek(1).type === "equal") {
-        const name = this.expect("identifier").value;
-        this.expect("equal");
-        keywords.push({ name, value: this.parseExpression() });
-      } else {
-        args.push(this.parseExpression());
-      }
-      this.consumeNewlines();
-    } while (this.match("comma"));
-    return { args, keywords };
-  }
-  consumeNewlines() {
-    while (this.match("newline")) {
-      continue;
-    }
-  }
-  current() {
-    return this.tokens[this.position];
-  }
-  peek(offset) {
-    return this.tokens[this.position + offset] ?? { type: "eof" };
-  }
-  is(type) {
-    return this.current().type === type;
-  }
-  match(type) {
-    if (this.is(type)) {
-      this.position += 1;
-      return true;
-    }
-    return false;
-  }
-  expect(type) {
-    if (!this.is(type)) {
-      throw new Error(`Expected token "${type}" but found "${this.current().type}".`);
-    }
-    const token = this.current();
-    this.position += 1;
-    return token;
-  }
-};
-function resolveString(expression, variables) {
-  if (expression.type === "string") {
-    return expression.value.trim();
-  }
-  if (expression.type === "identifier") {
-    return variables.get(expression.name) ?? null;
-  }
-  return null;
-}
-function isSetupCallee(expression) {
-  if (expression.type === "identifier") {
-    return expression.name === "setup";
-  }
-  if (expression.type === "attribute") {
-    return expression.attribute === "setup";
-  }
-  return false;
-}
-function findSetupCall(expression) {
-  if (expression.type === "call" && isSetupCallee(expression.callee)) {
-    return expression;
-  }
-  if (expression.type === "call") {
-    return findSetupCall(expression.callee);
-  }
-  if (expression.type === "attribute") {
-    return findSetupCall(expression.object);
-  }
-  return null;
-}
-var SetupPyParser = class {
-  parse(_filePath, content) {
-    const parser = new Parser(tokenize(content));
-    const statements = parser.parseModule();
-    const variables = /* @__PURE__ */ new Map();
-    for (const statement of statements) {
-      if (statement.type === "assign") {
-        const resolvedValue = resolveString(statement.value, variables);
-        if (resolvedValue !== null) {
-          variables.set(statement.target, resolvedValue);
-        }
-      }
-    }
-    let setupCall = null;
-    for (const statement of statements) {
-      const expression = statement.type === "assign" ? statement.value : statement.expression;
-      const candidate = findSetupCall(expression);
-      if (candidate) {
-        setupCall = candidate;
-        break;
-      }
-    }
-    if (!setupCall) {
-      throw new Error("setup.py does not contain a supported setup(...) call.");
-    }
-    const keywordMap = new Map(setupCall.keywords.map((keyword) => [keyword.name, keyword.value]));
-    const packageName = keywordMap.has("name") ? resolveString(keywordMap.get("name"), variables) : null;
-    const version = keywordMap.has("version") ? resolveString(keywordMap.get("version"), variables) : null;
-    if (!packageName) {
-      throw new Error('setup.py is missing a static "name" value in setup(...).');
-    }
-    if (!version) {
-      throw new Error('setup.py is missing a static "version" value in setup(...).');
-    }
-    return new LocalPackageCandidate(new PackageName(packageName), new Version(version));
-  }
-};
-function parseSetupPy(content) {
-  const parsed = new SetupPyParser().parse("setup.py", content);
-  return {
-    packageName: parsed.packageName.value,
-    version: parsed.version?.value
-  };
-}
-
-// src/ecosystems/pypi/ecosystem.ts
-var PypiEcosystem = class extends BaseEcosystemHandler {
-  pyProjectParser = new PyProjectParser();
-  setupPyParser = new SetupPyParser();
-  registryClient = new PypiRegistryClient();
-  constructor() {
-    super("pypi", ["pyproject.toml", "setup.py"]);
-  }
-  parseFromFile(filePath, content) {
-    const fileName = import_node_path4.default.basename(filePath).toLowerCase();
-    if (fileName === "pyproject.toml") {
-      return this.pyProjectParser.parse(filePath, content);
-    }
-    return this.setupPyParser.parse(filePath, content);
-  }
-  async fetchPublishedVersionInternal(packageName, options = {}) {
-    const result = await this.registryClient.fetchPublishedVersion(new PackageName(packageName), options);
-    return result.toString();
-  }
-};
-
-// src/ecosystems/ecosystem-registry.ts
-var SUPPORTED_FILE_LIST = "package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, and go.mod";
-var EcosystemRegistry = class {
-  handlers;
-  constructor(handlers) {
-    this.handlers = handlers;
-  }
-  detectRegistryFromFile(filePath) {
-    return this.getHandlerForFile(filePath).registry;
-  }
-  parseLocalPackageFile(filePath, versionPattern) {
-    return this.getHandlerForFile(filePath).parseLocalPackage(filePath, versionPattern);
-  }
-  parseLocalPackageContent(filePath, content, versionPattern) {
-    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
-  }
-  fetchPublishedVersion(registry, packageName, options) {
-    return this.getHandlerForRegistry(registry).fetchPublishedVersion(packageName, options);
-  }
-  getHandlerForFile(filePath) {
-    const handler2 = this.handlers.find((candidate) => candidate.supports(filePath));
-    if (!handler2) {
-      throw new Error(`Unable to detect a registry from "${filePath}". Supported files are ${SUPPORTED_FILE_LIST}.`);
-    }
-    return handler2;
-  }
-  getHandlerForRegistry(registry) {
-    const handler2 = this.handlers.find((candidate) => candidate.registry === registry);
-    if (!handler2) {
-      throw new Error(`Unsupported registry "${registry}".`);
-    }
-    return handler2;
-  }
-};
-var ecosystemRegistry = new EcosystemRegistry([
-  new NpmEcosystem(),
-  new PypiEcosystem(),
-  new MavenCentralEcosystem(),
-  new CargoEcosystem(),
-  new GoEcosystem()
-]);
-function detectRegistryFromFile(filePath) {
-  return ecosystemRegistry.detectRegistryFromFile(filePath);
-}
-function parseLocalPackageFile(filePath, versionPattern) {
-  return ecosystemRegistry.parseLocalPackageFile(filePath, versionPattern);
-}
-function parseLocalPackageContent(filePath, content, versionPattern) {
-  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
-}
-
-// src/utils/semver.ts
-var semver2 = __toESM(require_semver2());
-function compareSemverVersions(localVersion, publishedVersion) {
-  const normalizedLocal = semver2.valid(localVersion, { loose: true });
-  const normalizedPublished = semver2.valid(publishedVersion, { loose: true });
-  if (!normalizedLocal || !normalizedPublished) {
-    return {
-      comparable: false,
-      isHigher: false,
-      reason: `Non-semver version detected (local="${localVersion}", published="${publishedVersion}").`
-    };
-  }
-  return {
-    comparable: true,
-    isHigher: semver2.gt(normalizedLocal, normalizedPublished)
-  };
-}
-
-// src/utils/git.ts
-var import_node_child_process = require("node:child_process");
-var import_node_path5 = __toESM(require("node:path"));
-var import_node_util = require("node:util");
-var execFileAsync = (0, import_node_util.promisify)(import_node_child_process.execFile);
-function resolveGitCompareRef(rawCompareRef, context3) {
-  const explicitCompareRef = rawCompareRef.trim();
-  if (explicitCompareRef) {
-    return explicitCompareRef;
-  }
-  const pullRequestBaseSha = context3.payload.pull_request?.base?.sha?.trim();
-  if (pullRequestBaseSha) {
-    return pullRequestBaseSha;
-  }
-  const pullRequestBaseRef = context3.payload.pull_request?.base?.ref?.trim();
-  if (pullRequestBaseRef) {
-    return pullRequestBaseRef;
-  }
-  throw new Error('Input "compare-ref" is required when compare-source="git-ref" outside pull_request contexts.');
-}
-async function readFileAtGitRef(repoRoot, filePath, gitRef, options = {}) {
-  const relativePath = import_node_path5.default.relative(repoRoot, filePath);
-  if (!relativePath || relativePath.startsWith("..") || import_node_path5.default.isAbsolute(relativePath)) {
-    throw new Error(`File "${filePath}" must be inside the repository root "${repoRoot}".`);
-  }
-  const normalizedPath = relativePath.split(import_node_path5.default.sep).join("/");
-  const execFileImpl = options.execFileImpl ?? execFileAsync;
-  try {
-    const { stdout } = await execFileImpl("git", ["show", `${gitRef}:${normalizedPath}`], {
-      cwd: repoRoot,
-      encoding: "utf8",
-      maxBuffer: 1024 * 1024 * 5
-    });
-    return stdout;
-  } catch (error2) {
-    const suffix = error2 instanceof Error ? error2.message : String(error2);
-    throw new Error(`Unable to read "${normalizedPath}" from git ref "${gitRef}": ${suffix}`);
-  }
-}
 
 // src/main.ts
 function getBooleanInput(name, defaultValue) {
@@ -27129,30 +27275,6 @@ function getBooleanInput(name, defaultValue) {
     return false;
   }
   throw new Error(`Input "${name}" must be either "true" or "false".`);
-}
-function resolveRegistry(inputRegistry, filePath) {
-  if (inputRegistry === "auto") {
-    return detectRegistryFromFile(filePath);
-  }
-  if (inputRegistry !== "npm" && inputRegistry !== "pypi" && inputRegistry !== "maven-central" && inputRegistry !== "crates-io" && inputRegistry !== "go-proxy") {
-    throw new Error(`Unsupported registry "${inputRegistry}". Expected "auto", "npm", "pypi", "maven-central", "crates-io", or "go-proxy".`);
-  }
-  return inputRegistry;
-}
-function resolveCompareSource(compareSource) {
-  const normalized = compareSource.trim().toLowerCase();
-  if (!normalized || normalized === "registry") {
-    return "registry";
-  }
-  if (normalized === "git-ref") {
-    return "git-ref";
-  }
-  throw new Error(`Unsupported compare-source "${compareSource}". Expected "registry" or "git-ref".`);
-}
-async function fetchPublishedVersion(registry, packageName) {
-  const userAgent2 = `check-version-change/${context2.runId || "local"}`;
-  const headers = { "user-agent": userAgent2 };
-  return ecosystemRegistry.fetchPublishedVersion(registry, packageName, { headers });
 }
 function setOutputs(outputs) {
   setOutput("changed", String(outputs.changed));
@@ -27195,59 +27317,28 @@ var internal = {
   PypiEcosystem,
   readFileAtGitRef,
   resolveGitCompareRef,
-  resolveCompareSource
+  CompareSource,
+  CompareVersionRequest,
+  compareVersion,
+  executeCompareVersion
 };
 async function run() {
-  const rawRegistry = (getInput("registry") || "auto").trim().toLowerCase();
-  const compareSource = resolveCompareSource(getInput("compare-source") || "registry");
-  const relativeFilePath = getInput("file-path", { required: true }).trim();
-  const filePath = import_node_path6.default.resolve(process.cwd(), relativeFilePath);
-  const relativeCompareFilePath = getInput("compare-file-path").trim();
-  const compareFilePath = import_node_path6.default.resolve(process.cwd(), relativeCompareFilePath || relativeFilePath);
-  const packageNameOverride = getInput("package-name").trim();
-  const compareRef = getInput("compare-ref").trim();
-  const versionPattern = getInput("version-pattern").trim();
-  const compareSemver = getBooleanInput("compare-semver", true);
-  const registryDetected = resolveRegistry(rawRegistry, filePath);
-  const localPackage = await parseLocalPackageFile(filePath, versionPattern || void 0);
-  const packageNameDetected = packageNameOverride || localPackage.packageName.value;
-  if (!packageNameDetected) {
-    throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+  const request2 = new CompareVersionRequest({
+    cwd: process.cwd(),
+    registry: (getInput("registry") || "auto").trim().toLowerCase(),
+    compareSource: CompareSource.fromInput(getInput("compare-source") || "registry"),
+    filePath: getInput("file-path", { required: true }).trim(),
+    compareFilePath: getInput("compare-file-path").trim(),
+    packageNameOverride: getInput("package-name").trim(),
+    compareRef: getInput("compare-ref").trim(),
+    versionPattern: getInput("version-pattern").trim(),
+    compareSemver: getBooleanInput("compare-semver", true)
+  });
+  const result = await executeCompareVersion(request2);
+  if (result.warning) {
+    warning(`Semver comparison skipped: ${result.warning}`);
   }
-  let comparedVersion = "";
-  let compareRefResolved = "";
-  let compareFilePathResolved = "";
-  if (compareSource === "registry") {
-    comparedVersion = await fetchPublishedVersion(registryDetected, packageNameDetected);
-  } else {
-    compareRefResolved = resolveGitCompareRef(compareRef, context2);
-    compareFilePathResolved = compareFilePath;
-    const compareContent = await readFileAtGitRef(process.cwd(), compareFilePath, compareRefResolved);
-    const comparedPackage = await parseLocalPackageContent(compareFilePath, compareContent, versionPattern || void 0);
-    comparedVersion = comparedPackage.version.value;
-  }
-  const publishedVersion = comparedVersion;
-  const changed = !comparedVersion || localPackage.version.value !== comparedVersion;
-  let isHigher = false;
-  if (comparedVersion && compareSemver) {
-    const comparison = compareSemverVersions(localPackage.version.value, comparedVersion);
-    isHigher = comparison.isHigher;
-    if (!comparison.comparable && comparison.reason) {
-      warning(`Semver comparison skipped: ${comparison.reason}`);
-    }
-  }
-  const outputs = {
-    changed,
-    localVersion: localPackage.version.value,
-    comparedVersion,
-    publishedVersion,
-    isHigher,
-    registryDetected: compareSource === "registry" ? registryDetected : "",
-    packageNameDetected,
-    comparisonSourceDetected: compareSource,
-    compareRefResolved,
-    compareFilePathResolved
-  };
+  const outputs = result.outputs;
   setOutputs(outputs);
   return outputs;
 }
