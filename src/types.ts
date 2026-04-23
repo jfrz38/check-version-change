@@ -4,6 +4,7 @@ import type { Version } from './domain/value-objects/version';
 
 export type SupportedRegistry = 'npm' | 'pypi' | 'maven-central' | 'crates-io' | 'go-proxy';
 export type RegistryInput = SupportedRegistry | 'auto';
+export type CompareSource = 'registry' | 'git-ref';
 
 export interface LocalPackageInfo {
   packageName: PackageName;
@@ -20,8 +21,11 @@ export interface PublishedPackageInfo {
 
 export interface ActionInputs {
   filePath: string;
+  compareFilePath?: string;
   packageNameOverride?: string;
   registry: RegistryInput;
+  compareSource: CompareSource;
+  compareRef?: string;
   versionPattern?: string;
   compareSemver: boolean;
 }
@@ -29,10 +33,14 @@ export interface ActionInputs {
 export interface ActionOutputs {
   changed: boolean;
   localVersion: string;
+  comparedVersion: string;
   publishedVersion: string;
   isHigher: boolean;
-  registryDetected: SupportedRegistry;
+  registryDetected: SupportedRegistry | '';
   packageNameDetected: string;
+  comparisonSourceDetected: CompareSource;
+  compareRefResolved: string;
+  compareFilePathResolved: string;
 }
 
 export interface FetchJsonOptions {
@@ -45,5 +53,6 @@ export interface EcosystemHandler {
   readonly registry: SupportedRegistry;
   supports(filePath: string): boolean;
   parseLocalPackage(filePath: string, versionPattern?: string): Promise<LocalPackage>;
+  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string): Promise<LocalPackage>;
   fetchPublishedVersion(packageName: string, options?: FetchJsonOptions): Promise<string>;
 }

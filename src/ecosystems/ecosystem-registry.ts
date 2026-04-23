@@ -22,6 +22,10 @@ export class EcosystemRegistry {
     return this.getHandlerForFile(filePath).parseLocalPackage(filePath, versionPattern);
   }
 
+  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
+    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
+  }
+
   fetchPublishedVersion(registry: SupportedRegistry, packageName: string, options?: FetchJsonOptions): Promise<string> {
     return this.getHandlerForRegistry(registry).fetchPublishedVersion(packageName, options);
   }
@@ -57,4 +61,8 @@ export function detectRegistryFromFile(filePath: string): SupportedRegistry {
 
 export function parseLocalPackageFile(filePath: string, versionPattern?: string) {
   return ecosystemRegistry.parseLocalPackageFile(filePath, versionPattern);
+}
+
+export function parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
+  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
 }
