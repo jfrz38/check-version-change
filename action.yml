@@ -1,0 +1,78 @@
+name: 'check-version-change'
+description: 'Compare a local package version with the latest version published to package manager.'
+author: 'jfrz38'
+
+inputs:
+  file-path:
+    description: 'Path to package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, or go.mod'
+    required: true
+
+  package-name:
+    description: 'Optional override for the package name used in the registry lookup'
+    required: false
+
+  registry:
+    description: 'Registry to query: auto, npm, pypi, maven-central, crates-io, or go-proxy'
+    required: false
+    default: 'auto'
+
+  compare-source:
+    description: 'Where to read the comparison version from: registry or git-ref'
+    required: false
+    default: 'git-ref'
+
+  compare-ref:
+    description: 'Git ref to compare against when compare-source=git-ref. If omitted, the action uses the pull request base SHA or base branch.'
+    required: false
+
+  compare-file-path:
+    description: 'Optional file path to read from the target ref when compare-source=git-ref. Defaults to file-path, and if that path does not exist the action searches the target ref for a file with the same name.'
+    required: false
+
+  version-pattern:
+    description: 'Custom regex used to extract the local version from the file contents. Must contain exactly one capture group.'
+    required: false
+
+  compare-semver:
+    description: 'If true, compute is-higher using semver when both versions are semver-compatible'
+    required: false
+    default: 'true'
+
+outputs:
+  changed:
+    description: 'true when the local version differs from the published version, or when no published version exists'
+
+  local-version:
+    description: 'Version detected in the repository file'
+
+  compared-version:
+    description: 'Version used as the comparison target, from the selected compare source'
+
+  published-version:
+    description: 'Legacy alias for compared-version. With compare-source=registry it is the published version; with compare-source=git-ref it is the version read from the target ref'
+
+  is-higher:
+    description: 'true when compare-semver is enabled and the local version is semver-greater than the compared version'
+
+  registry-detected:
+    description: 'Registry used for the lookup when compare-source=registry, otherwise an empty string'
+
+  package-name-detected:
+    description: 'Package name used for the lookup'
+
+  comparison-source-detected:
+    description: 'Comparison source used by the action'
+
+  compare-ref-resolved:
+    description: 'Resolved Git ref used when compare-source=git-ref, otherwise an empty string'
+
+  compare-file-path-resolved:
+    description: 'Resolved file path used when compare-source=git-ref, otherwise an empty string'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+
+branding:
+  icon: 'git-compare'
+  color: 'blue'

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run local CI pipeline
+        run: pnpm validate
+
+      - name: Verify committed dist bundle is up to date
+        shell: bash
+        run: |
+          if ! git diff --exit-code -- dist/index.js; then
+            echo "::error::dist/index.js is out of date. Run 'pnpm build' and commit the updated bundle."
+            exit 1
+          fi
