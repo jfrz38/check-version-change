@@ -39,6 +39,9 @@ jobs:
       - name: Validate build before release
         run: pnpm validate
 
+      - name: Run smoke tests before release
+        run: pnpm test:smoke
+
       - name: Verify committed dist bundle is up to date
         shell: bash
         run: |

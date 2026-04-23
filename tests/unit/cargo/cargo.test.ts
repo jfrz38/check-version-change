@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseCargoToml } from '../../src/ecosystems/cargo/parser';
-import { fetchCratesIoPublishedVersion } from '../../src/ecosystems/cargo/registry';
+import { parseCargoToml } from '../../../src/ecosystems/cargo/parser';
+import { fetchCratesIoPublishedVersion } from '../../../src/ecosystems/cargo/registry';
 
 describe('cargo', () => {
   it('parser reads package name and version', () => {
@@ -18,15 +18,15 @@ version = "1.4.0"
 
   it('client extracts highest non-yanked version from sparse index', async () => {
     const fetchImpl = vi.fn(async () => ({
-        ok: true,
-        status: 200,
-        statusText: 'OK',
-        text: async () => [
-          JSON.stringify({ vers: '1.0.0', yanked: false }),
-          JSON.stringify({ vers: '1.2.0', yanked: true }),
-          JSON.stringify({ vers: '1.1.5', yanked: false }),
-        ].join('\n'),
-      })) as unknown as typeof fetch;
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: async () => [
+        JSON.stringify({ vers: '1.0.0', yanked: false }),
+        JSON.stringify({ vers: '1.2.0', yanked: true }),
+        JSON.stringify({ vers: '1.1.5', yanked: false }),
+      ].join('\n'),
+    })) as unknown as typeof fetch;
 
     const result = await fetchCratesIoPublishedVersion('demo-crate', { fetchImpl });
 

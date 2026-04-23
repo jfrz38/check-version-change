@@ -302,6 +302,18 @@ Run the unit tests:
 pnpm test
 ```
 
+Run the smoke tests:
+
+```bash
+pnpm test:smoke
+```
+
+Run the acceptance tests:
+
+```bash
+pnpm test:acceptance
+```
+
 Run tests in watch mode:
 
 ```bash
@@ -328,6 +340,8 @@ If you prefer shorter commands, the repository also includes a `Makefile`:
 make install
 make typecheck
 make test
+make test-smoke
+make test-acceptance
 make test-watch
 make test-coverage
 make build
@@ -339,18 +353,27 @@ On Windows, this is useful if you already use Git Bash, MSYS2, Cygwin, or WSL. I
 
 ## GitHub Workflows
 
-The repository includes two workflows:
+The repository includes three workflows:
 
-- `CI`: runs on pull requests and on pushes to `main`, and executes the local `pnpm validate` pipeline
-- `Release`: runs on every push to `main`, validates the project again, creates the exact version tag from `package.json` when it does not exist yet, and force-updates the major tag such as `v1`
+- `CI`: runs the unit validation pipeline on pull requests and pushes to `main`, and adds smoke tests on pushes to `main`
+- `Release`: runs on every push to `main`, validates the project again, runs smoke tests, creates the exact version tag from `package.json` when it does not exist yet, and force-updates the major tag such as `v1`
+- `Acceptance Tests`: runs only when launched manually with `workflow_dispatch`
 
-Both workflows also rebuild the project and fail if the committed `dist/index.js` is not aligned with the source code. If that happens locally, run:
+The automated workflows rebuild the project and fail if the committed `dist/index.js` is not aligned with the source code. If that happens locally, run:
 
 ```bash
 pnpm build
 ```
 
 and commit the updated bundle before merging.
+
+## Test Layout
+
+The test suite is split by purpose:
+
+- `tests/unit`: fast deterministic unit tests, used by `pnpm test`
+- `tests/smoke`: lightweight end-to-end checks against real public registries, used on merges to `main`
+- `tests/acceptance-tests`: broader real-registry acceptance coverage, launched manually
 
 This means every merge to `main` automatically updates the floating major tag that consumers typically use:
 

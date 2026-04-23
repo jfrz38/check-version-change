@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parsePyProjectToml } from '../../src/ecosystems/pypi/pyproject';
-import { parseSetupPy } from '../../src/ecosystems/pypi/setup-py';
+import { parsePyProjectToml } from '../../../src/ecosystems/pypi/pyproject';
+import { parseSetupPy } from '../../../src/ecosystems/pypi/setup-py';
 
 describe('pypi', () => {
   it('pyproject parser prefers [project] metadata', () => {

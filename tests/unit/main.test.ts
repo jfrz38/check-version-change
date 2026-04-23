@@ -41,8 +41,8 @@ const gitUtilsMock = vi.hoisted(() => ({
 
 vi.mock('@actions/core', () => coreMock);
 vi.mock('@actions/github', () => githubMock);
-vi.mock('../src/ecosystems/ecosystem-registry', () => registryMock);
-vi.mock('../src/utils/git', () => gitUtilsMock);
+vi.mock('../../src/ecosystems/ecosystem-registry', () => registryMock);
+vi.mock('../../src/utils/git', () => gitUtilsMock);
 
 describe('main', () => {
   beforeEach(() => {
@@ -78,8 +78,8 @@ describe('main', () => {
     });
   });
 
-  it('compares against the version from a git ref when compare-source=git-ref', async () => {
-    const { run } = await import('../src/main');
+  it('compares against the version from a git ref when compare-source is omitted', async () => {
+    const { run } = await import('../../src/main');
 
     const result = await run();
 
@@ -118,7 +118,7 @@ describe('main', () => {
       return inputs[name] ?? '';
     });
 
-    const { run } = await import('../src/main');
+    const { run } = await import('../../src/main');
 
     await run();
 
@@ -158,7 +158,7 @@ describe('main', () => {
     });
     registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('1.1.9');
 
-    const { run } = await import('../src/main');
+    const { run } = await import('../../src/main');
     const result = await run();
 
     expect(registryMock.ecosystemRegistry.fetchPublishedVersion).toHaveBeenCalled();
