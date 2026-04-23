@@ -1,7 +1,5 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
-import path from 'node:path';
-import type { ActionOutputs, RegistryInput, SupportedRegistry } from './types';
+import type { ActionOutputs } from './types';
 import { CargoEcosystem } from './ecosystems/cargo/ecosystem';
 import { parseCargoToml } from './ecosystems/cargo/parser';
 import { fetchCratesIoPublishedVersion } from './ecosystems/cargo/registry';
@@ -21,8 +19,13 @@ import { parsePyProjectToml } from './ecosystems/pypi/pyproject';
 import { fetchPypiPublishedVersion } from './ecosystems/pypi/registry';
 import { parseSetupPy } from './ecosystems/pypi/setup-py';
 import { compareSemverVersions } from './utils/semver';
+import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from './utils/git';
 import { fetchJsonWithRetry } from './utils/http';
 import { extractVersionFromPattern, countCaptureGroups } from './utils/version-pattern';
+import { parseLocalPackageContent } from './ecosystems/ecosystem-registry';
+import { CompareVersionRequest } from './application/compare-version-request';
+import { compareVersion, executeCompareVersion } from './application/compare-version-use-case';
+import { CompareSource } from './domain/value-objects/compare-source';
 
 function getBooleanInput(name: string, defaultValue: boolean): boolean {
   const rawValue = core.getInput(name);
@@ -41,31 +44,17 @@ function getBooleanInput(name: string, defaultValue: boolean): boolean {
   throw new Error(`Input "${name}" must be either "true" or "false".`);
 }
 
-function resolveRegistry(inputRegistry: RegistryInput, filePath: string): SupportedRegistry {
-  if (inputRegistry === 'auto') {
-    return detectRegistryFromFile(filePath);
-  }
-
-  if (inputRegistry !== 'npm' && inputRegistry !== 'pypi' && inputRegistry !== 'maven-central' && inputRegistry !== 'crates-io' && inputRegistry !== 'go-proxy') {
-    throw new Error(`Unsupported registry "${inputRegistry}". Expected "auto", "npm", "pypi", "maven-central", "crates-io", or "go-proxy".`);
-  }
-
-  return inputRegistry;
-}
-
-async function fetchPublishedVersion(registry: SupportedRegistry, packageName: string): Promise<string> {
-  const userAgent = `check-version-change/${github.context.runId || 'local'}`;
-  const headers = { 'user-agent': userAgent };
-  return ecosystemRegistry.fetchPublishedVersion(registry, packageName, { headers });
-}
-
 function setOutputs(outputs: ActionOutputs): void {
   core.setOutput('changed', String(outputs.changed));
   core.setOutput('local-version', outputs.localVersion);
+  core.setOutput('compared-version', outputs.comparedVersion);
   core.setOutput('published-version', outputs.publishedVersion);
   core.setOutput('is-higher', String(outputs.isHigher));
   core.setOutput('registry-detected', outputs.registryDetected);
   core.setOutput('package-name-detected', outputs.packageNameDetected);
+  core.setOutput('comparison-source-detected', outputs.comparisonSourceDetected);
+  core.setOutput('compare-ref-resolved', outputs.compareRefResolved);
+  core.setOutput('compare-file-path-resolved', outputs.compareFilePathResolved);
 }
 
 export const internal = {
@@ -87,6 +76,7 @@ export const internal = {
   NpmEcosystem,
   parseCargoToml,
   parseGoMod,
+  parseLocalPackageContent,
   parseLocalPackageFile,
   parseGradleBuildFile,
   parsePackageJson,
@@ -94,45 +84,33 @@ export const internal = {
   parsePyProjectToml,
   parseSetupPy,
   PypiEcosystem,
+  readFileAtGitRef,
+  listFilesAtGitRef,
+  resolveCompareFilePathAtGitRef,
+  resolveGitCompareRef,
+  CompareSource,
+  CompareVersionRequest,
+  compareVersion,
+  executeCompareVersion,
 };
 
 export async function run(): Promise<ActionOutputs> {
-  const rawRegistry = (core.getInput('registry') || 'auto').trim().toLowerCase() as RegistryInput;
-  const relativeFilePath = core.getInput('file-path', { required: true }).trim();
-  const filePath = path.resolve(process.cwd(), relativeFilePath);
-  const packageNameOverride = core.getInput('package-name').trim();
-  const versionPattern = core.getInput('version-pattern').trim();
-  const compareSemver = getBooleanInput('compare-semver', true);
-
-  const registryDetected = resolveRegistry(rawRegistry, filePath);
-  const localPackage = await parseLocalPackageFile(filePath, versionPattern || undefined);
-  const packageNameDetected = packageNameOverride || localPackage.packageName.value;
-
-  if (!packageNameDetected) {
-    throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+  const request = new CompareVersionRequest({
+    cwd: process.cwd(),
+    registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
+    compareSource: CompareSource.fromInput(core.getInput('compare-source')),
+    filePath: core.getInput('file-path', { required: true }).trim(),
+    compareFilePath: core.getInput('compare-file-path').trim(),
+    packageNameOverride: core.getInput('package-name').trim(),
+    compareRef: core.getInput('compare-ref').trim(),
+    versionPattern: core.getInput('version-pattern').trim(),
+    compareSemver: getBooleanInput('compare-semver', true),
+  });
+  const result = await executeCompareVersion(request);
+  if (result.warning) {
+    core.warning(`Semver comparison skipped: ${result.warning}`);
   }
-
-  const publishedVersion = await fetchPublishedVersion(registryDetected, packageNameDetected);
-  const changed = !publishedVersion || localPackage.version.value !== publishedVersion;
-
-  let isHigher = false;
-  if (publishedVersion && compareSemver) {
-    const comparison = compareSemverVersions(localPackage.version.value, publishedVersion);
-    isHigher = comparison.isHigher;
-
-    if (!comparison.comparable && comparison.reason) {
-      core.warning(`Semver comparison skipped: ${comparison.reason}`);
-    }
-  }
-
-  const outputs: ActionOutputs = {
-    changed,
-    localVersion: localPackage.version.value,
-    publishedVersion,
-    isHigher,
-    registryDetected,
-    packageNameDetected,
-  };
+  const outputs = result.outputs;
 
   setOutputs(outputs);
   return outputs;

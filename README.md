@@ -1,6 +1,6 @@
 # Check Version Change
 
-`check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with the latest version published to a package registry, then exposes the result as workflow outputs.
+`check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with either the latest version published to a package registry or the version stored in another Git ref, then exposes the result as workflow outputs.
 
 It supports:
 
@@ -19,6 +19,9 @@ It supports:
 | `file-path` | Yes | - | Path to `package.json`, `pyproject.toml`, `setup.py`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `Cargo.toml`, or `go.mod` |
 | `package-name` | No | detected | Override the package name used for the registry lookup |
 | `registry` | No | `auto` | `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, or `go-proxy` |
+| `compare-source` | No | `git-ref` | `git-ref` or `registry` |
+| `compare-ref` | No | auto on PRs | Git ref to compare against when `compare-source=git-ref`. On `pull_request` events it defaults to the base commit SHA or base branch |
+| `compare-file-path` | No | same as `file-path` | File path to read from the target ref when `compare-source=git-ref` |
 | `version-pattern` | No | - | Regex used to extract the local version from file contents. Must contain exactly one capture group |
 | `compare-semver` | No | `true` | Whether to compute `is-higher` using semver rules |
 
@@ -28,10 +31,14 @@ It supports:
 | --- | --- |
 | `changed` | `true` when the local version differs from the published version, or when the package does not exist in the registry |
 | `local-version` | Version detected in the repository file |
-| `published-version` | Published version, or `""` when the package is not found |
-| `is-higher` | `true` when `compare-semver=true` and the local version is semver-greater than the published version |
-| `registry-detected` | Registry used for the lookup |
+| `compared-version` | Version used as the comparison target |
+| `published-version` | Legacy alias for `compared-version` |
+| `is-higher` | `true` when `compare-semver=true` and the local version is semver-greater than the compared version |
+| `registry-detected` | Registry used for the lookup, or `""` when `compare-source=git-ref` |
 | `package-name-detected` | Package name used for the lookup |
+| `comparison-source-detected` | Comparison source used by the action |
+| `compare-ref-resolved` | Resolved Git ref used when `compare-source=git-ref`, otherwise `""` |
+| `compare-file-path-resolved` | Resolved file path used when `compare-source=git-ref`, otherwise `""` |
 
 ## Detection Rules
 
@@ -76,7 +83,27 @@ With `version-pattern`:
 - If the pattern does not match, the action fails.
 - Package name detection still uses the file parser unless `package-name` is explicitly provided.
 
-## Registry Lookups
+## Comparison Sources
+
+### Git ref
+
+This is the default mode.
+
+When `compare-source=git-ref`, the action reads a file from another Git ref in the local checkout, extracts its version with the same parser or `version-pattern`, and compares that version against the current workspace.
+
+Behavior:
+
+- if `compare-ref` is provided, that ref is used directly
+- if `compare-ref` is omitted on `pull_request` events, the action prefers the base commit SHA from the event payload and then the base branch
+- if `compare-file-path` is omitted, the action first tries the same value as `file-path`
+- if that path does not exist in the target ref, the action searches the target ref for a file with the same file name
+- if multiple matching file names are found, the action fails and asks for `compare-file-path`
+- if no pull request base information is available, the action requires `compare-ref`
+- the compared ref must already exist in the local checkout available to the workflow
+
+For CI jobs that compare against another branch, using `actions/checkout` with enough history is recommended, for example `fetch-depth: 0`.
+
+### Registry
 
 - npm -> `https://registry.npmjs.org/<package>` and reads `dist-tags.latest`
 - PyPI -> `https://pypi.org/pypi/<package>/json` and reads `info.version`
@@ -94,12 +121,12 @@ Behavior:
 
 `changed` always uses exact string comparison:
 
-- no published version -> `changed=true`
-- published version exists -> `changed = local-version != published-version`
+- no compared version -> `changed=true`
+- compared version exists -> `changed = local-version != compared-version`
 
 `is-higher` is intentionally conservative:
 
-- no published version -> `false`
+- no compared version -> `false`
 - `compare-semver=false` -> `false`
 - `compare-semver=true` and both versions are semver-compatible -> computed with semver rules
 - if either version is not semver-compatible -> the action logs a warning and leaves `is-higher=false`
@@ -212,6 +239,53 @@ For `go.mod`, the action detects the module path automatically, but Go does not 
     version-pattern: 'build_version\\s*=\\s*"([^"]+)"'
 ```
 
+### Compare against the pull request base branch version
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- id: version-check
+  uses: ./
+  with:
+    file-path: package.json
+    compare-source: git-ref
+```
+
+On `pull_request` events this uses the base commit SHA automatically.
+
+### Compare against a specific branch
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- id: version-check
+  uses: ./
+  with:
+    file-path: package.json
+    compare-source: git-ref
+    compare-ref: origin/main
+```
+
+### Compare against a different file in the target ref
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+
+- id: version-check
+  uses: ./
+  with:
+    file-path: apps/web/package.json
+    compare-source: git-ref
+    compare-ref: origin/main
+    compare-file-path: package.json
+```
+
 ## Development
 
 Install dependencies and rebuild the bundled action:
@@ -286,4 +360,4 @@ uses: owner/check-version-change@v1
 
 If the version in `package.json` is new, the workflow also creates a matching GitHub Release for that exact tag.
 
-The repository already includes a checked-in `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.
+The repository already includes a checked-in, minified `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.
