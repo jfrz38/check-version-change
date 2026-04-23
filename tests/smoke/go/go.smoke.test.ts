@@ -16,6 +16,7 @@ go 1.25
     });
 
     const { outputs } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': tempProject.filePath('go.mod'),
       'version-pattern': 'version\\s*=\\s*"([^"]+)"',

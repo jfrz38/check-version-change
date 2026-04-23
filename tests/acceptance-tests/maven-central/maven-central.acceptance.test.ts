@@ -24,6 +24,7 @@ describe('maven-central acceptance', () => {
     });
 
     const { result } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': project.filePath('pom.xml'),
     });
@@ -51,6 +52,7 @@ rootProject.name = "junit"
     });
 
     const { result } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': project.filePath('build.gradle'),
     });

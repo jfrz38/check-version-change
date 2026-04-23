@@ -15,6 +15,7 @@ version = "999.0.0"
     });
 
     const { outputs } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': tempProject.filePath('Cargo.toml'),
     });

@@ -18,6 +18,7 @@ describe('maven-central smoke', () => {
     });
 
     const { outputs } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': tempProject.filePath('pom.xml'),
     });

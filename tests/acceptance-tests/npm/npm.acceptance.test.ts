@@ -20,6 +20,7 @@ describe('npm acceptance', () => {
     });
 
     const { result } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': project.filePath('package.json'),
     });

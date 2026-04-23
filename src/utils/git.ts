@@ -19,12 +19,12 @@ export function resolveGitCompareRef(rawCompareRef: string, context: typeof gith
     return explicitCompareRef;
   }
 
-  const pullRequestBaseSha = context.payload.pull_request?.base?.sha?.trim();
+  const pullRequestBaseSha = context.payload?.pull_request?.base?.sha?.trim();
   if (pullRequestBaseSha) {
     return pullRequestBaseSha;
   }
 
-  const pullRequestBaseRef = context.payload.pull_request?.base?.ref?.trim();
+  const pullRequestBaseRef = context.payload?.pull_request?.base?.ref?.trim();
   if (pullRequestBaseRef) {
     return pullRequestBaseRef;
   }

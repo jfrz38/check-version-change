@@ -14,6 +14,7 @@ describe('npm smoke', () => {
     });
 
     const { outputs } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': tempProject.filePath('package.json'),
     });

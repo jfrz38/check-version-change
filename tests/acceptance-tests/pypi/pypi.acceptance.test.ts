@@ -21,6 +21,7 @@ version = "999.0.0"
     });
 
     const { result } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': project.filePath('pyproject.toml'),
     });
@@ -46,6 +47,7 @@ setup(
     });
 
     const { result } = await runActionWithInputs({
+      'compare-source': 'registry',
       'compare-semver': 'true',
       'file-path': project.filePath('setup.py'),
     });
