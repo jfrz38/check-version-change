@@ -360,4 +360,4 @@ uses: owner/check-version-change@v1
 
 If the version in `package.json` is new, the workflow also creates a matching GitHub Release for that exact tag.
 
-The repository already includes a checked-in `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.
+The repository already includes a checked-in, minified `dist/index.js` so the action can run directly from GitHub without installing dependencies at action runtime.
