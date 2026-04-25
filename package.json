@@ -1,6 +1,6 @@
 {
   "name": "check-version-change",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "GitHub Action that compares a local package version with the published version in npm or PyPI.",
   "main": "dist/index.js",
