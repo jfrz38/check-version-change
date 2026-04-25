@@ -29,7 +29,9 @@ const registryMock = vi.hoisted(() => ({
   EcosystemRegistry: class {},
   detectRegistryFromFile: vi.fn(),
   parseLocalPackageFile: vi.fn(),
+  parseLocalPackageFileForRegistry: vi.fn(),
   parseLocalPackageContent: vi.fn(),
+  parseLocalPackageContentForRegistry: vi.fn(),
 }));
 
 const gitUtilsMock = vi.hoisted(() => ({
@@ -54,7 +56,15 @@ describe('main', () => {
       packageName: { value: 'demo-package' },
       version: { value: '1.2.0' },
     });
+    registryMock.parseLocalPackageFileForRegistry.mockResolvedValue({
+      packageName: { value: 'demo-package' },
+      version: { value: '1.2.0' },
+    });
     registryMock.parseLocalPackageContent.mockResolvedValue({
+      packageName: { value: 'demo-package' },
+      version: { value: '1.1.0' },
+    });
+    registryMock.parseLocalPackageContentForRegistry.mockResolvedValue({
       packageName: { value: 'demo-package' },
       version: { value: '1.1.0' },
     });
@@ -134,7 +144,8 @@ describe('main', () => {
       'base-sha-123',
       true,
     );
-    expect(registryMock.parseLocalPackageContent).toHaveBeenCalledWith(
+    expect(registryMock.parseLocalPackageContentForRegistry).toHaveBeenCalledWith(
+      'npm',
       expect.stringMatching(/packages[\\/]+shared[\\/]+package\.json$/),
       expect.any(String),
       undefined,
@@ -165,5 +176,40 @@ describe('main', () => {
     expect(gitUtilsMock.resolveCompareFilePathAtGitRef).not.toHaveBeenCalled();
     expect(result.comparisonSourceDetected).toBe('registry');
     expect(result.comparedVersion).toBe('1.1.9');
+  });
+
+  it('supports explicit VS Code Marketplace registry comparison', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'vscode-marketplace',
+        'compare-source': 'registry',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': '',
+        'version-pattern': '',
+        'compare-semver': 'true',
+      };
+
+      return inputs[name] ?? '';
+    });
+    registryMock.parseLocalPackageFileForRegistry.mockResolvedValue({
+      packageName: { value: 'example.demo-extension' },
+      version: { value: '2.0.0' },
+    });
+    registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('1.9.0');
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(registryMock.parseLocalPackageFileForRegistry).toHaveBeenCalledWith('vscode-marketplace', expect.stringMatching(/package\.json$/), undefined);
+    expect(registryMock.ecosystemRegistry.fetchPublishedVersion).toHaveBeenCalledWith(
+      'vscode-marketplace',
+      'example.demo-extension',
+      expect.any(Object),
+    );
+    expect(result.packageNameDetected).toBe('example.demo-extension');
+    expect(result.registryDetected).toBe('vscode-marketplace');
+    expect(result.comparedVersion).toBe('1.9.0');
   });
 });

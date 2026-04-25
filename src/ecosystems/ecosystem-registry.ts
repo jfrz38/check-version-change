@@ -4,6 +4,7 @@ import { GoEcosystem } from './go/ecosystem';
 import { MavenCentralEcosystem } from './maven-central/ecosystem';
 import { NpmEcosystem } from './npm/ecosystem';
 import { PypiEcosystem } from './pypi/ecosystem';
+import { VsCodeMarketplaceEcosystem } from './vscode-marketplace/ecosystem';
 
 const SUPPORTED_FILE_LIST = 'package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, and go.mod';
 
@@ -22,8 +23,16 @@ export class EcosystemRegistry {
     return this.getHandlerForFile(filePath).parseLocalPackage(filePath, versionPattern);
   }
 
+  parseLocalPackageFileForRegistry(registry: SupportedRegistry, filePath: string, versionPattern?: string) {
+    return this.getHandlerForRegistry(registry).parseLocalPackage(filePath, versionPattern);
+  }
+
   parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
     return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
+  }
+
+  parseLocalPackageContentForRegistry(registry: SupportedRegistry, filePath: string, content: string, versionPattern?: string) {
+    return this.getHandlerForRegistry(registry).parseLocalPackageContent(filePath, content, versionPattern);
   }
 
   fetchPublishedVersion(registry: SupportedRegistry, packageName: string, options?: FetchJsonOptions): Promise<string> {
@@ -53,6 +62,7 @@ export const ecosystemRegistry = new EcosystemRegistry([
   new MavenCentralEcosystem(),
   new CargoEcosystem(),
   new GoEcosystem(),
+  new VsCodeMarketplaceEcosystem(),
 ]);
 
 export function detectRegistryFromFile(filePath: string): SupportedRegistry {
@@ -65,4 +75,12 @@ export function parseLocalPackageFile(filePath: string, versionPattern?: string)
 
 export function parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
   return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
+}
+
+export function parseLocalPackageFileForRegistry(registry: SupportedRegistry, filePath: string, versionPattern?: string) {
+  return ecosystemRegistry.parseLocalPackageFileForRegistry(registry, filePath, versionPattern);
+}
+
+export function parseLocalPackageContentForRegistry(registry: SupportedRegistry, filePath: string, content: string, versionPattern?: string) {
+  return ecosystemRegistry.parseLocalPackageContentForRegistry(registry, filePath, content, versionPattern);
 }

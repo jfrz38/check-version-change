@@ -5,9 +5,9 @@
 [![GitHub Marketplace](https://img.shields.io/badge/marketplace-check--version--change-blue?logo=githubactions)](https://github.com/marketplace/actions/check-version-change)
 [![License](https://img.shields.io/github/license/jfrz38/check-version-change)](LICENSE)
 
-`check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with either the latest version published to a package registry or the version stored in another Git ref, then exposes the result as workflow outputs.
+`check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with either the latest version published to a package registry or marketplace, or the version stored in another Git ref, then exposes the result as workflow outputs.
 
-Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, or the `Go module proxy`.
+Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, the `Go module proxy`, or the `VS Code Marketplace`.
 
 ## Quick Start
 
@@ -86,6 +86,17 @@ Compare the local version against the latest version published to the matching r
 
 When `registry: auto`, the registry is detected from the file type.
 
+For VS Code extensions, pass the registry explicitly because `package.json` defaults to npm detection:
+
+```yaml
+- id: version-check
+  uses: jfrz38/check-version-change@v1
+  with:
+    file-path: package.json
+    compare-source: registry
+    registry: vscode-marketplace
+```
+
 ## Supported Files
 
 | File | Registry |
@@ -98,6 +109,7 @@ When `registry: auto`, the registry is detected from the file type.
 | `build.gradle.kts` | Maven Central |
 | `Cargo.toml` | crates.io |
 | `go.mod` | Go module proxy |
+| `package.json` with `registry: vscode-marketplace` | VS Code Marketplace |
 
 ## Inputs
 
@@ -105,7 +117,7 @@ When `registry: auto`, the registry is detected from the file type.
 | --- | --- | --- | --- |
 | `file-path` | Yes | - | Path to `package.json`, `pyproject.toml`, `setup.py`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `Cargo.toml`, or `go.mod`. |
 | `package-name` | No | detected | Override the package name used for registry lookup. |
-| `registry` | No | `auto` | Registry to query: `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, or `go-proxy`. |
+| `registry` | No | `auto` | Registry to query: `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, `go-proxy`, or `vscode-marketplace`. |
 | `compare-source` | No | `git-ref` | Comparison source: `git-ref` or `registry`. |
 | `compare-ref` | No | PR base ref | Git ref to compare against when `compare-source=git-ref`. |
 | `compare-file-path` | No | `file-path` | File path to read from the target ref when `compare-source=git-ref`. |
@@ -229,6 +241,19 @@ For Gradle projects:
     file-path: go.mod
     compare-source: registry
     version-pattern: 'version\s*=\s*"([^"]+)"'
+```
+
+### VS Code Marketplace
+
+For VS Code extensions, use `registry: vscode-marketplace` explicitly. The action reads `version` from `package.json` and looks up the Marketplace extension using `publisher.name`.
+
+```yaml
+- id: version-check
+  uses: jfrz38/check-version-change@v1
+  with:
+    file-path: package.json
+    compare-source: registry
+    registry: vscode-marketplace
 ```
 
 ### Custom Version Pattern

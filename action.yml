@@ -1,5 +1,5 @@
 name: 'check-version-change'
-description: 'Compare a local package version with the latest version published to package manager.'
+description: 'Compare a local package version with the latest version published to a registry or marketplace.'
 author: 'jfrz38'
 
 inputs:
@@ -12,7 +12,7 @@ inputs:
     required: false
 
   registry:
-    description: 'Registry to query: auto, npm, pypi, maven-central, crates-io, or go-proxy'
+    description: 'Registry to query: auto, npm, pypi, maven-central, crates-io, go-proxy, or vscode-marketplace'
     required: false
     default: 'auto'
 

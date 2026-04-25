@@ -3,7 +3,7 @@ import type { ActionOutputs } from './types';
 import { CargoEcosystem } from './ecosystems/cargo/ecosystem';
 import { parseCargoToml } from './ecosystems/cargo/parser';
 import { fetchCratesIoPublishedVersion } from './ecosystems/cargo/registry';
-import { ecosystemRegistry, EcosystemRegistry, parseLocalPackageFile, detectRegistryFromFile } from './ecosystems/ecosystem-registry';
+import { ecosystemRegistry, EcosystemRegistry, parseLocalPackageFile, detectRegistryFromFile, parseLocalPackageFileForRegistry } from './ecosystems/ecosystem-registry';
 import { GoEcosystem } from './ecosystems/go/ecosystem';
 import { parseGoMod } from './ecosystems/go/parser';
 import { fetchGoProxyPublishedVersion } from './ecosystems/go/registry';
@@ -18,11 +18,14 @@ import { PypiEcosystem } from './ecosystems/pypi/ecosystem';
 import { parsePyProjectToml } from './ecosystems/pypi/pyproject';
 import { fetchPypiPublishedVersion } from './ecosystems/pypi/registry';
 import { parseSetupPy } from './ecosystems/pypi/setup-py';
+import { VsCodeMarketplaceEcosystem } from './ecosystems/vscode-marketplace/ecosystem';
+import { parseVsCodeExtensionPackageJson } from './ecosystems/vscode-marketplace/parser';
+import { fetchVsCodeMarketplacePublishedVersion } from './ecosystems/vscode-marketplace/registry';
 import { compareSemverVersions } from './utils/semver';
 import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from './utils/git';
 import { fetchJsonWithRetry } from './utils/http';
 import { extractVersionFromPattern, countCaptureGroups } from './utils/version-pattern';
-import { parseLocalPackageContent } from './ecosystems/ecosystem-registry';
+import { parseLocalPackageContent, parseLocalPackageContentForRegistry } from './ecosystems/ecosystem-registry';
 import { CompareVersionRequest } from './application/compare-version-request';
 import { compareVersion, executeCompareVersion } from './application/compare-version-use-case';
 import { CompareSource } from './domain/value-objects/compare-source';
@@ -72,18 +75,23 @@ export const internal = {
   fetchMavenCentralPublishedVersion,
   fetchNpmPublishedVersion,
   fetchPypiPublishedVersion,
+  fetchVsCodeMarketplacePublishedVersion,
   MavenCentralEcosystem,
   NpmEcosystem,
   parseCargoToml,
   parseGoMod,
   parseLocalPackageContent,
+  parseLocalPackageContentForRegistry,
   parseLocalPackageFile,
+  parseLocalPackageFileForRegistry,
   parseGradleBuildFile,
   parsePackageJson,
   parsePomXml,
   parsePyProjectToml,
   parseSetupPy,
+  parseVsCodeExtensionPackageJson,
   PypiEcosystem,
+  VsCodeMarketplaceEcosystem,
   readFileAtGitRef,
   listFilesAtGitRef,
   resolveCompareFilePathAtGitRef,
