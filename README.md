@@ -1,8 +1,13 @@
 # Check Version Change
 
+[![CI](https://github.com/jfrz38/check-version-change/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jfrz38/check-version-change/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/jfrz38/check-version-change?display_name=tag)](https://github.com/jfrz38/check-version-change/releases)
+[![GitHub Marketplace](https://img.shields.io/badge/marketplace-check--version--change-blue?logo=githubactions)](https://github.com/marketplace/actions/check-version-change)
+[![License](https://img.shields.io/github/license/jfrz38/check-version-change)](LICENSE)
+
 `check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with either the latest version published to a package registry or the version stored in another Git ref, then exposes the result as workflow outputs.
 
-Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against npm, PyPI, Maven Central, crates.io, or the Go module proxy.
+Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, or the `Go module proxy`.
 
 ## Quick Start
 
