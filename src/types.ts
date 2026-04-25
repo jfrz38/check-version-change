@@ -2,7 +2,16 @@ import type { LocalPackage } from './domain/value-objects/local-package';
 import type { PackageName } from './domain/value-objects/package-name';
 import type { Version } from './domain/value-objects/version';
 
-export type SupportedRegistry = 'npm' | 'pypi' | 'maven-central' | 'crates-io' | 'go-proxy';
+export const SUPPORTED_REGISTRIES = [
+  'npm',
+  'pypi',
+  'maven-central',
+  'crates-io',
+  'go-proxy',
+  'vscode-marketplace',
+] as const;
+
+export type SupportedRegistry = typeof SUPPORTED_REGISTRIES[number];
 export type RegistryInput = SupportedRegistry | 'auto';
 export type CompareSource = 'registry' | 'git-ref';
 
