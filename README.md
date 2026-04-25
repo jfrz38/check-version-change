@@ -1,7 +1,6 @@
 # Check Version Change
 
 [![CI](https://github.com/jfrz38/check-version-change/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jfrz38/check-version-change/actions/workflows/ci.yml)
-[![Release](https://github.com/jfrz38/check-version-change/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/jfrz38/check-version-change/actions/workflows/release.yml)
 [![GitHub release](https://img.shields.io/github/v/release/jfrz38/check-version-change?display_name=tag)](https://github.com/jfrz38/check-version-change/releases)
 [![GitHub Marketplace](https://img.shields.io/badge/marketplace-check--version--change-blue?logo=githubactions)](https://github.com/marketplace/actions/check-version-change)
 [![License](https://img.shields.io/github/license/jfrz38/check-version-change)](LICENSE)
