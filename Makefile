@@ -12,10 +12,11 @@ install: ## install project dependencies
 	pnpm install
 
 .PHONY: upgrade-version
-upgrade-version: ## bump package version with major, minor, or patch and refresh the lockfile
+upgrade-version: ## bump package version with major, minor, or patch, refresh the lockfile, and rebuild
 	node -e "const v='$(VERSION_BUMP)'; if (!['major','minor','patch'].includes(v)) { console.error('Usage: make upgrade-version major|minor|patch'); process.exit(1); }"
 	pnpm version $(VERSION_BUMP) --no-git-tag-version
 	pnpm install
+	pnpm build
 
 .PHONY: typecheck
 typecheck: ## run the TypeScript type checker
