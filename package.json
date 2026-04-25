@@ -2,7 +2,33 @@
   "name": "check-version-change",
   "version": "1.0.1",
   "private": true,
-  "description": "GitHub Action that compares a local package version with the published version in npm or PyPI.",
+  "description": "GitHub Action that compares a local package version with a registry version or another Git ref.",
+  "license": "MIT",
+  "author": {
+    "name": "José F. Ruiz",
+    "url": "https://github.com/jfrz38"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jfrz38/check-version-change.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jfrz38/check-version-change/issues"
+  },
+  "homepage": "https://github.com/jfrz38/check-version-change#readme",
+  "keywords": [
+    "github-action",
+    "github-actions",
+    "version-check",
+    "version-compare",
+    "release",
+    "semver",
+    "npm",
+    "pypi",
+    "maven",
+    "crates",
+    "golang"
+  ],
   "main": "dist/index.js",
   "type": "commonjs",
   "packageManager": "pnpm@10.12.3",
