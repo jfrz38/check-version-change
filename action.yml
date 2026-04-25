@@ -74,5 +74,5 @@ runs:
   main: 'dist/index.js'
 
 branding:
-  icon: 'git-compare'
+  icon: 'git-branch'
   color: 'blue'
