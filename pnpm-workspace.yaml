@@ -1,2 +1,5 @@
 enablePrePostScripts: false
 minimumReleaseAge: 4320
+saveExact: true
+allowBuilds:
+  esbuild: true
