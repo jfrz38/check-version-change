@@ -123,6 +123,8 @@ For VS Code extensions, pass the registry explicitly because `package.json` defa
 | `compare-file-path` | No | `file-path` | File path to read from the target ref when `compare-source=git-ref`. |
 | `version-pattern` | No | parser default | Custom regex used to extract the local version. Must contain exactly one capture group. |
 | `compare-semver` | No | `true` | Compute `is-higher` with semver when both versions are semver-compatible. |
+| `fail-on-unchanged` | No | `false` | Fail the action when the local version does not differ from the compared version. This is the main publish-gate input for preventing duplicate versions. |
+| `fail-on-not-higher` | No | `false` | Optional stricter policy: fail when a compared version exists and the local version is not semver-greater. Useful only when your release process requires monotonically increasing versions. |
 
 ## Outputs
 
@@ -299,3 +301,31 @@ The regex is applied to the full file contents and must contain exactly one capt
 - the local version is greater than the compared version
 
 This lets you distinguish "changed" from "safe to publish as a higher semver version".
+
+## Failing Publish Gates
+
+For publish workflows, enable `fail-on-unchanged` to make the action fail when the local version already exists in the comparison source:
+
+```yaml
+- id: version-check
+  name: Check version can be published
+  uses: jfrz38/check-version-change@v1
+  with:
+    file-path: package.json
+    package-name: my-package
+    compare-source: registry
+    registry: npm
+    fail-on-unchanged: true
+```
+
+`fail-on-unchanged` is the main publish-gate flag. It prevents publishing the exact same version twice while still allowing valid workflows such as backports, maintaining older major versions, prerelease channels, or registry-specific version policies.
+
+If your project also requires every published version to be semver-greater than the compared version, enable the stricter optional policy:
+
+```yaml
+fail-on-not-higher: true
+```
+
+`fail-on-not-higher` is intentionally opt-in and more niche. It can reject valid publish workflows when the latest published version is not the only version line you maintain.
+
+Outputs are still set before the action fails, so diagnostic steps can inspect values such as `local-version`, `compared-version`, `changed`, and `is-higher`.

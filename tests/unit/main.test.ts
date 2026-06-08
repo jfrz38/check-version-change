@@ -82,6 +82,8 @@ describe('main', () => {
         'compare-ref': '',
         'version-pattern': '',
         'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
       };
 
       return inputs[name] ?? '';
@@ -123,6 +125,8 @@ describe('main', () => {
         'compare-ref': 'origin/main',
         'version-pattern': '',
         'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
       };
 
       return inputs[name] ?? '';
@@ -163,6 +167,8 @@ describe('main', () => {
         'compare-ref': '',
         'version-pattern': '',
         'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
       };
 
       return inputs[name] ?? '';
@@ -189,6 +195,8 @@ describe('main', () => {
         'compare-ref': '',
         'version-pattern': '',
         'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
       };
 
       return inputs[name] ?? '';
@@ -211,5 +219,86 @@ describe('main', () => {
     expect(result.packageNameDetected).toBe('example.demo-extension');
     expect(result.registryDetected).toBe('vscode-marketplace');
     expect(result.comparedVersion).toBe('1.9.0');
+  });
+
+  it('fails after setting outputs when fail-on-unchanged is enabled and versions match', async () => {
+    registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('1.2.0');
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'registry',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': '',
+        'version-pattern': '',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'true',
+        'fail-on-not-higher': 'false',
+      };
+
+      return inputs[name] ?? '';
+    });
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('Version 1.2.0 is unchanged from the compared version.');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('changed', 'false');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('local-version', '1.2.0');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('compared-version', '1.2.0');
+  });
+
+  it('fails after setting outputs when fail-on-not-higher is enabled and local version is not higher', async () => {
+    registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('1.3.0');
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'registry',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': '',
+        'version-pattern': '',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'true',
+      };
+
+      return inputs[name] ?? '';
+    });
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('Version 1.2.0 is not higher than compared version 1.3.0.');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('changed', 'true');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('is-higher', 'false');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('compared-version', '1.3.0');
+  });
+
+  it('does not fail on fail-on-not-higher when no compared version exists', async () => {
+    registryMock.ecosystemRegistry.fetchPublishedVersion.mockResolvedValue('');
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'registry',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': '',
+        'version-pattern': '',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'true',
+      };
+
+      return inputs[name] ?? '';
+    });
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(result.changed).toBe(true);
+    expect(result.comparedVersion).toBe('');
+    expect(coreMock.setOutput).toHaveBeenCalledWith('compared-version', '');
   });
 });
