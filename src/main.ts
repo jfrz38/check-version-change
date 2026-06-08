@@ -28,6 +28,7 @@ import { extractVersionFromPattern, countCaptureGroups } from './utils/version-p
 import { parseLocalPackageContent, parseLocalPackageContentForRegistry } from './ecosystems/ecosystem-registry';
 import { CompareVersionRequest } from './application/compare-version-request';
 import { compareVersion, executeCompareVersion } from './application/compare-version-use-case';
+import { assertVersionFailurePolicy, type VersionFailurePolicy } from './application/version-failure-policy';
 import { CompareSource } from './domain/value-objects/compare-source';
 
 function getBooleanInput(name: string, defaultValue: boolean): boolean {
@@ -98,11 +99,16 @@ export const internal = {
   resolveGitCompareRef,
   CompareSource,
   CompareVersionRequest,
+  assertVersionFailurePolicy,
   compareVersion,
   executeCompareVersion,
 };
 
 export async function run(): Promise<ActionOutputs> {
+  const failurePolicy: VersionFailurePolicy = {
+    failOnUnchanged: getBooleanInput('fail-on-unchanged', false),
+    failOnNotHigher: getBooleanInput('fail-on-not-higher', false),
+  };
   const request = new CompareVersionRequest({
     cwd: process.cwd(),
     registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
@@ -121,6 +127,7 @@ export async function run(): Promise<ActionOutputs> {
   const outputs = result.outputs;
 
   setOutputs(outputs);
+  assertVersionFailurePolicy(outputs, failurePolicy);
   return outputs;
 }
 

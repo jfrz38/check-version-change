@@ -38,6 +38,16 @@ inputs:
     required: false
     default: 'true'
 
+  fail-on-unchanged:
+    description: 'If true, fail when the local version does not differ from the compared version'
+    required: false
+    default: 'false'
+
+  fail-on-not-higher:
+    description: 'Optional strict policy: fail when a compared version exists and the local version is not semver-greater'
+    required: false
+    default: 'false'
+
 outputs:
   changed:
     description: 'true when the local version differs from the published version, or when no published version exists'
