@@ -1,5 +1,5 @@
 import type { ActionOutputs } from '../types';
-import { VersionPolicyViolationError } from '../domain/errors/version-policy-violation-error';
+import { VersionNotHigherError, VersionUnchangedError } from '../domain/errors/version-policy-violation-error';
 
 export interface VersionFailurePolicy {
   failOnUnchanged: boolean;
@@ -8,10 +8,10 @@ export interface VersionFailurePolicy {
 
 export function assertVersionFailurePolicy(outputs: ActionOutputs, policy: VersionFailurePolicy): void {
   if (policy.failOnUnchanged && !outputs.changed) {
-    throw VersionPolicyViolationError.unchanged(outputs.localVersion);
+    throw new VersionUnchangedError(outputs.localVersion);
   }
 
   if (policy.failOnNotHigher && outputs.comparedVersion && !outputs.isHigher) {
-    throw VersionPolicyViolationError.notHigher(outputs.localVersion, outputs.comparedVersion);
+    throw new VersionNotHigherError(outputs.localVersion, outputs.comparedVersion);
   }
 }

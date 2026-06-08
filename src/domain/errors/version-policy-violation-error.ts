@@ -1,14 +1,13 @@
-export class VersionPolicyViolationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'VersionPolicyViolationError';
+export class VersionUnchangedError extends Error {
+  constructor(localVersion: string) {
+    super(`Version ${localVersion} is unchanged from the compared version.`);
+    this.name = 'VersionUnchangedError';
   }
+}
 
-  static unchanged(localVersion: string): VersionPolicyViolationError {
-    return new VersionPolicyViolationError(`Version ${localVersion} is unchanged from the compared version.`);
-  }
-
-  static notHigher(localVersion: string, comparedVersion: string): VersionPolicyViolationError {
-    return new VersionPolicyViolationError(`Version ${localVersion} is not higher than compared version ${comparedVersion}.`);
+export class VersionNotHigherError extends Error {
+  constructor(localVersion: string, comparedVersion: string) {
+    super(`Version ${localVersion} is not higher than compared version ${comparedVersion}.`);
+    this.name = 'VersionNotHigherError';
   }
 }

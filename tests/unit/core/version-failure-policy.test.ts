@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { assertVersionFailurePolicy } from '../../../src/application/version-failure-policy';
-import { VersionPolicyViolationError } from '../../../src/domain/errors/version-policy-violation-error';
+import { VersionNotHigherError, VersionUnchangedError } from '../../../src/domain/errors/version-policy-violation-error';
 import type { ActionOutputs } from '../../../src/types';
 
 function buildOutputs(overrides: Partial<ActionOutputs> = {}): ActionOutputs {
@@ -24,7 +24,7 @@ describe('version failure policy', () => {
     const outputs = buildOutputs({ changed: false, comparedVersion: '1.2.0', publishedVersion: '1.2.0', isHigher: false });
 
     expect(() => assertVersionFailurePolicy(outputs, { failOnUnchanged: true, failOnNotHigher: false })).toThrow(
-      VersionPolicyViolationError,
+      VersionUnchangedError,
     );
     expect(() => assertVersionFailurePolicy(outputs, { failOnUnchanged: true, failOnNotHigher: false })).toThrow(
       'Version 1.2.0 is unchanged from the compared version.',
@@ -35,7 +35,7 @@ describe('version failure policy', () => {
     const outputs = buildOutputs({ comparedVersion: '1.3.0', publishedVersion: '1.3.0', isHigher: false });
 
     expect(() => assertVersionFailurePolicy(outputs, { failOnUnchanged: false, failOnNotHigher: true })).toThrow(
-      VersionPolicyViolationError,
+      VersionNotHigherError,
     );
     expect(() => assertVersionFailurePolicy(outputs, { failOnUnchanged: false, failOnNotHigher: true })).toThrow(
       'Version 1.2.0 is not higher than compared version 1.3.0.',
