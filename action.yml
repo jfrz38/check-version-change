@@ -80,7 +80,7 @@ outputs:
     description: 'Resolved file path used when compare-source=git-ref, otherwise an empty string'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 
 branding:
