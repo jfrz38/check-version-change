@@ -34,10 +34,10 @@
   "type": "commonjs",
   "packageManager": "pnpm@11.0.8",
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
-    "build": "esbuild src/main.ts --bundle --platform=node --target=node20 --format=cjs --minify --outfile=dist/index.js",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node24 --format=cjs --minify --outfile=dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run tests/unit",
     "test:watch": "vitest tests/unit",
