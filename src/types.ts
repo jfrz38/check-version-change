@@ -56,6 +56,7 @@ export interface FetchJsonOptions {
   headers?: Record<string, string>;
   missingStatusCodes?: number[];
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }
 
 export interface EcosystemHandler {
