@@ -17,6 +17,9 @@ importers:
       semver:
         specifier: 7.8.5
         version: 7.8.5
+      smol-toml:
+        specifier: 1.8.0
+        version: 1.8.0
     devDependencies:
       '@types/node':
         specifier: 26.2.0
@@ -771,6 +774,9 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  smol-toml@1.8.0:
+    resolution: {integrity: sha512-kCZr2V3ch9i00x8zXRhjUNVcjG9ijES5dDudkXvUVCT5QlJNQWElSJdZqyPemffHoLNUYwOcou0Fy+ojN0uHSQ==}
+
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
@@ -1496,6 +1502,8 @@ snapshots:
       '@rolldown/binding-win32-x64-msvc': 1.0.0-rc.15
 
   semver@7.8.5: {}
+
+  smol-toml@1.8.0: {}
 
   siginfo@2.0.0: {}
 

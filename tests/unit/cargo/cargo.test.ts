@@ -16,6 +16,26 @@ version = "1.4.0"
     });
   });
 
+  it('parser accepts multiline TOML arrays', () => {
+    const result = parseCargoToml(`
+[package]
+name = "demo-crate"
+version = "1.4.0"
+include = [
+  "Cargo.lock",
+  "Cargo.toml",
+  "LICENSE",
+  "README.md",
+  "src/**/*.rs",
+]
+`);
+
+    expect(result).toEqual({
+      packageName: 'demo-crate',
+      version: '1.4.0',
+    });
+  });
+
   it('client extracts highest non-yanked version from sparse index', async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
