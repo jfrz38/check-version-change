@@ -33,6 +33,22 @@ version = "0.8.0"
     });
   });
 
+  it('pyproject parser accepts multiline TOML arrays', () => {
+    const result = parsePyProjectToml(`
+[project]
+name = "demo-project"
+version = "1.2.3"
+authors = [
+  { name = "Demo Author" },
+]
+`);
+
+    expect(result).toEqual({
+      packageName: 'demo-project',
+      version: '1.2.3',
+    });
+  });
+
   it('setup.py parser resolves variables and setup arguments', () => {
     const result = parseSetupPy(`
 PACKAGE_NAME = "sample-lib"
