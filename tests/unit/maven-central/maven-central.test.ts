@@ -46,20 +46,28 @@ describe('maven-central', () => {
     }
   });
 
-  it('client extracts latestVersion', async () => {
+  it('client extracts latest version from Maven metadata', async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,
       status: 200,
       statusText: 'OK',
-      json: async () => ({
-        response: {
-          docs: [{ latestVersion: '3.1.4' }],
-        },
-      }),
+      text: async () => `
+        <metadata>
+          <groupId>com.example</groupId>
+          <artifactId>demo-lib</artifactId>
+          <versioning><latest>3.1.4</latest></versioning>
+        </metadata>
+      `,
     })) as unknown as typeof fetch;
 
     const result = await fetchMavenCentralPublishedVersion('com.example:demo-lib', { fetchImpl });
 
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://repo1.maven.org/maven2/com/example/demo-lib/maven-metadata.xml',
+      expect.objectContaining({
+        headers: expect.objectContaining({ accept: 'application/xml' }),
+      }),
+    );
     expect(result.version).toBe('3.1.4');
   });
 });
