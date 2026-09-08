@@ -1,6 +1,7 @@
 import * as github from '@actions/github';
 import { ecosystemRegistry } from '../ecosystems/ecosystem-registry';
 import { parseLocalPackageContentForRegistry } from '../ecosystems/ecosystem-registry';
+import { GitFileNotFoundError } from '../utils/errors/git-file-not-found-error';
 import { readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../utils/git';
 import type { SupportedRegistry } from '../types';
 import type { CompareVersionRequest } from './compare-version-request';
@@ -30,12 +31,26 @@ export async function resolveComparisonVersion(
   }
 
   const compareRefResolved = resolveGitCompareRef(request.compareRef, github.context);
-  const compareFilePathResolved = await resolveCompareFilePathAtGitRef(
-    request.cwd,
-    request.compareFilePath,
-    compareRefResolved,
-    request.hasExplicitCompareFilePath,
-  );
+  let compareFilePathResolved: string;
+  try {
+    compareFilePathResolved = await resolveCompareFilePathAtGitRef(
+      request.cwd,
+      request.compareFilePath,
+      compareRefResolved,
+      request.hasExplicitCompareFilePath,
+    );
+  } catch (error) {
+    if (request.allowMissingCompareFile && error instanceof GitFileNotFoundError) {
+      return {
+        comparedVersion: '',
+        registryDetected: '',
+        compareRefResolved,
+        compareFilePathResolved: '',
+      };
+    }
+
+    throw error;
+  }
   const compareContent = await readFileAtGitRef(request.cwd, compareFilePathResolved, compareRefResolved);
   const comparedPackage = await parseLocalPackageContentForRegistry(registryDetected, compareFilePathResolved, compareContent, request.versionPattern);
 

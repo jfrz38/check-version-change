@@ -29,6 +29,11 @@ inputs:
     description: 'Optional file path to read from the target ref when compare-source=git-ref. Defaults to file-path, and if that path does not exist the action searches the target ref for a file with the same name.'
     required: false
 
+  allow-missing-compare-file:
+    description: 'If true, treat a missing comparison file at the target Git ref as an initial version instead of failing.'
+    required: false
+    default: 'false'
+
   version-pattern:
     description: 'Custom regex used to extract the local version from the file contents. Must contain exactly one capture group.'
     required: false

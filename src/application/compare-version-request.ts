@@ -10,6 +10,7 @@ export interface CompareVersionRequestProps {
   registry: RegistryInput;
   compareSource: CompareSource;
   compareRef?: string;
+  allowMissingCompareFile: boolean;
   versionPattern?: string;
   compareSemver: boolean;
 }
@@ -23,6 +24,7 @@ export class CompareVersionRequest {
   readonly registry: RegistryInput;
   readonly compareSource: CompareSource;
   readonly compareRef: string;
+  readonly allowMissingCompareFile: boolean;
   readonly versionPattern?: string;
   readonly compareSemver: boolean;
 
@@ -35,6 +37,7 @@ export class CompareVersionRequest {
     this.registry = props.registry;
     this.compareSource = props.compareSource;
     this.compareRef = props.compareRef?.trim() || '';
+    this.allowMissingCompareFile = props.allowMissingCompareFile;
     this.versionPattern = props.versionPattern?.trim() || undefined;
     this.compareSemver = props.compareSemver;
   }

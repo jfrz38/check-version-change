@@ -121,6 +121,7 @@ For VS Code extensions, pass the registry explicitly because `package.json` defa
 | `compare-source` | No | `git-ref` | Comparison source: `git-ref` or `registry`. |
 | `compare-ref` | No | PR base ref | Git ref to compare against when `compare-source=git-ref`. |
 | `compare-file-path` | No | `file-path` | File path to read from the target ref when `compare-source=git-ref`. |
+| `allow-missing-compare-file` | No | `false` | When `true`, treat a missing comparison file at the target Git ref as an initial version instead of failing. |
 | `version-pattern` | No | parser default | Custom regex used to extract the local version. Must contain exactly one capture group. |
 | `compare-semver` | No | `true` | Compute `is-higher` with semver when both versions are semver-compatible. |
 | `fail-on-unchanged` | No | `false` | Fail the action when the local version does not differ from the compared version. This is the main publish-gate input for preventing duplicate versions. |
@@ -167,6 +168,28 @@ On `pull_request` events, `compare-ref` can be omitted because the action uses t
 ```
 
 Use `fetch-depth: 0` with `actions/checkout` when comparing against another branch or commit.
+
+When introducing a package for the first time, the file may not exist in the target ref. Set `allow-missing-compare-file: true` to complete successfully with `changed: true`, an empty `compared-version`, and `is-higher: false`. The default is `false`, which preserves the error for a missing file.
+
+For a manually dispatched workflow, expose the action input as a boolean:
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      allow_missing_compare_file:
+        description: Allow an initial version when the file is absent from the comparison ref
+        required: true
+        default: false
+        type: boolean
+
+# ...
+- uses: jfrz38/check-version-change@v1
+  with:
+    file-path: package.json
+    compare-ref: main
+    allow-missing-compare-file: ${{ inputs.allow_missing_compare_file }}
+```
 
 ### Registry
 
