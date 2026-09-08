@@ -117,6 +117,7 @@ export async function run(): Promise<ActionOutputs> {
     compareFilePath: core.getInput('compare-file-path').trim(),
     packageNameOverride: core.getInput('package-name').trim(),
     compareRef: core.getInput('compare-ref').trim(),
+    allowMissingCompareFile: getBooleanInput('allow-missing-compare-file', false),
     versionPattern: core.getInput('version-pattern').trim(),
     compareSemver: getBooleanInput('compare-semver', true),
   });

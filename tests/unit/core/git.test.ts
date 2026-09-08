@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
+import { GitFileNotFoundError } from '../../../src/utils/errors/git-file-not-found-error';
 import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../../../src/utils/git';
 
 describe('git utils', () => {
@@ -76,10 +77,41 @@ describe('git utils', () => {
   });
 
   it('does not search alternative paths when compare-file-path is explicit', async () => {
-    const execFileImpl = vi.fn().mockRejectedValue(new Error('missing'));
+    const execFileImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('missing'))
+      .mockResolvedValueOnce({ stdout: 'package.json\n', stderr: '' });
 
     await expect(
       resolveCompareFilePathAtGitRef('/repo', '/repo/package.json', 'main', true, { execFileImpl }),
     ).rejects.toThrow(/missing/i);
+  });
+
+  it('identifies an explicitly configured comparison file that does not exist', async () => {
+    const execFileImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('missing'))
+      .mockResolvedValueOnce({ stdout: 'README.md\n', stderr: '' });
+
+    await expect(
+      resolveCompareFilePathAtGitRef('/repo', '/repo/package.json', 'main', true, { execFileImpl }),
+    ).rejects.toBeInstanceOf(GitFileNotFoundError);
+  });
+
+  it('keeps an invalid explicit comparison file path as a configuration error', async () => {
+    await expect(
+      resolveCompareFilePathAtGitRef('/repo', '/other/package.json', 'main', true),
+    ).rejects.toThrow(/must be inside the repository root/i);
+  });
+
+  it('identifies when the comparison file does not exist in the git ref', async () => {
+    const execFileImpl = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('missing'))
+      .mockResolvedValueOnce({ stdout: 'README.md\n', stderr: '' });
+
+    await expect(
+      resolveCompareFilePathAtGitRef('/repo', '/repo/package.json', 'main', false, { execFileImpl }),
+    ).rejects.toBeInstanceOf(GitFileNotFoundError);
   });
 });

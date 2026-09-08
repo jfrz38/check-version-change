@@ -41,10 +41,15 @@ const gitUtilsMock = vi.hoisted(() => ({
   resolveGitCompareRef: vi.fn(),
 }));
 
+const gitFileNotFoundErrorMock = vi.hoisted(() => ({
+  GitFileNotFoundError: class GitFileNotFoundError extends Error {},
+}));
+
 vi.mock('@actions/core', () => coreMock);
 vi.mock('@actions/github', () => githubMock);
 vi.mock('../../src/ecosystems/ecosystem-registry', () => registryMock);
 vi.mock('../../src/utils/git', () => gitUtilsMock);
+vi.mock('../../src/utils/errors/git-file-not-found-error', () => gitFileNotFoundErrorMock);
 
 describe('main', () => {
   beforeEach(() => {
@@ -80,6 +85,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
@@ -123,6 +129,7 @@ describe('main', () => {
         'compare-file-path': 'packages/shared/package.json',
         'package-name': '',
         'compare-ref': 'origin/main',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
@@ -156,6 +163,40 @@ describe('main', () => {
     );
   });
 
+  it('treats a missing comparison file as an initial version when enabled', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'git-ref',
+        'file-path': 'package.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'compare-ref': 'main',
+        'allow-missing-compare-file': 'true',
+        'version-pattern': '',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
+      };
+
+      return inputs[name] ?? '';
+    });
+    gitUtilsMock.resolveCompareFilePathAtGitRef.mockRejectedValue(new gitFileNotFoundErrorMock.GitFileNotFoundError());
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(result).toMatchObject({
+      changed: true,
+      comparedVersion: '',
+      publishedVersion: '',
+      isHigher: false,
+      compareRefResolved: 'base-sha-123',
+      compareFilePathResolved: '',
+    });
+    expect(gitUtilsMock.readFileAtGitRef).not.toHaveBeenCalled();
+  });
+
   it('still supports explicit registry comparison', async () => {
     coreMock.getInput.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
@@ -165,6 +206,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
@@ -193,6 +235,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
@@ -231,6 +274,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'true',
@@ -258,6 +302,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
@@ -285,6 +330,7 @@ describe('main', () => {
         'compare-file-path': '',
         'package-name': '',
         'compare-ref': '',
+        'allow-missing-compare-file': 'false',
         'version-pattern': '',
         'compare-semver': 'true',
         'fail-on-unchanged': 'false',
