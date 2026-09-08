@@ -3,15 +3,8 @@ import { PackageName } from '../../domain/value-objects/package-name';
 import { PublishedVersion } from '../../domain/value-objects/published-version';
 import { Version } from '../../domain/value-objects/version';
 import type { FetchJsonOptions, PublishedPackageInfo } from '../../types';
-import { fetchJsonWithRetry } from '../../utils/http';
-
-interface MavenCentralResponse {
-  response?: {
-    docs?: Array<{
-      latestVersion?: string;
-    }>;
-  };
-}
+import { fetchTextWithRetry } from '../../utils/http';
+import { getChild, getChildText, parseXml } from './xml';
 
 function parseCoordinates(packageName: string): { groupId: string; artifactId: string } {
   const parts = packageName.split(':');
@@ -30,11 +23,15 @@ export class MavenCentralRegistryClient implements RegistryClient {
 
   async fetchPublishedVersion(packageName: PackageName, options: FetchJsonOptions = {}): Promise<PublishedVersion> {
     const { groupId, artifactId } = parseCoordinates(packageName.value);
-    const query = encodeURIComponent(`g:${groupId} AND a:${artifactId}`);
-    const url = `https://search.maven.org/solrsearch/select?q=${query}&rows=1&wt=json`;
+    const groupPath = groupId.split('.').join('/');
+    const url = `https://repo1.maven.org/maven2/${groupPath}/${artifactId}/maven-metadata.xml`;
 
-    const response = await fetchJsonWithRetry<MavenCentralResponse>(url, {
+    const response = await fetchTextWithRetry(url, {
       ...options,
+      headers: {
+        accept: 'application/xml',
+        ...options.headers,
+      },
       missingStatusCodes: [401, 403, 404],
     });
 
@@ -42,7 +39,10 @@ export class MavenCentralRegistryClient implements RegistryClient {
       return new PublishedVersion(null);
     }
 
-    const version = response.data?.response?.docs?.[0]?.latestVersion?.trim();
+    const metadata = parseXml(response.data ?? '');
+    const versioning = getChild(metadata, 'versioning');
+    const version = getChildText(versioning ?? metadata, 'latest')
+      ?? getChildText(versioning ?? metadata, 'release');
     return new PublishedVersion(version ? new Version(version) : null);
   }
 }
