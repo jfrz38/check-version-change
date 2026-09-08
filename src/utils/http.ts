@@ -7,7 +7,7 @@ interface JsonResult<T> {
   data: T | null;
 }
 
-export async function fetchJsonWithRetry<T>(url: string, options: FetchJsonOptions = {}): Promise<JsonResult<T>> {
+async function fetchTextWithRetry(url: string, options: FetchJsonOptions = {}): Promise<JsonResult<string>> {
   const fetchImpl = options.fetchImpl ?? fetch;
   const missingStatusCodes = new Set(options.missingStatusCodes ?? [404]);
   const controller = new AbortController();
@@ -36,7 +36,9 @@ export async function fetchJsonWithRetry<T>(url: string, options: FetchJsonOptio
         if (response.ok) {
           return {
             found: true,
-            data: (await response.json()) as T,
+            data: typeof response.text === 'function'
+              ? await response.text()
+              : JSON.stringify(await response.json()),
           };
         }
 
@@ -59,3 +61,14 @@ export async function fetchJsonWithRetry<T>(url: string, options: FetchJsonOptio
   const suffix = lastError instanceof Error ? lastError.message : String(lastError);
   throw new Error(`Unable to fetch registry metadata from ${url}: ${suffix}`);
 }
+
+export async function fetchJsonWithRetry<T>(url: string, options: FetchJsonOptions = {}): Promise<JsonResult<T>> {
+  const response = await fetchTextWithRetry(url, options);
+
+  return {
+    found: response.found,
+    data: response.data === null ? null : JSON.parse(response.data) as T,
+  };
+}
+
+export { fetchTextWithRetry };

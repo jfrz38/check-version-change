@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type * as github from '@actions/github';
+import { GitFileNotFoundError } from './errors/git-file-not-found-error';
 
 const execFileAsync = promisify(execFile);
 
@@ -97,6 +98,17 @@ export async function resolveCompareFilePathAtGitRef(
     return filePath;
   } catch (error) {
     if (hasExplicitCompareFilePath) {
+      const relativePath = path.relative(repoRoot, filePath);
+      if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        throw error;
+      }
+
+      const normalizedPath = relativePath.split(path.sep).join('/');
+      const filesAtRef = await listFilesAtGitRef(repoRoot, gitRef, options);
+      if (!filesAtRef.includes(normalizedPath)) {
+        throw new GitFileNotFoundError(normalizedPath, gitRef);
+      }
+
       throw error;
     }
   }
@@ -106,7 +118,7 @@ export async function resolveCompareFilePathAtGitRef(
     .filter((candidate) => path.basename(candidate).toLowerCase() === targetBaseName);
 
   if (candidates.length === 0) {
-    throw new Error(`Unable to find "${path.basename(filePath)}" in git ref "${gitRef}".`);
+    throw new GitFileNotFoundError(path.basename(filePath), gitRef);
   }
 
   if (candidates.length > 1) {

@@ -35,6 +35,7 @@ export interface ActionInputs {
   registry: RegistryInput;
   compareSource: CompareSource;
   compareRef?: string;
+  allowMissingCompareFile: boolean;
   versionPattern?: string;
   compareSemver: boolean;
 }
