@@ -5,7 +5,7 @@
 [![GitHub Marketplace](https://img.shields.io/badge/marketplace-check--version--change-blue?logo=githubactions)](https://github.com/marketplace/actions/check-version-change)
 [![License](https://img.shields.io/github/license/jfrz38/check-version-change)](LICENSE)
 
-`check-version-change` is a production-oriented GitHub Action that compares the version declared in your repository with either the latest version published to a package registry or marketplace, or the version stored in another Git ref, then exposes the result as workflow outputs.
+`check-version-change` is a production-oriented GitHub Action that compares a version declared in your repository with either the latest version published to a package registry or marketplace, or the version stored in another Git ref, then exposes the result as workflow outputs.
 
 Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, the `Go module proxy`, or the `VS Code Marketplace`.
 
@@ -97,6 +97,33 @@ For VS Code extensions, pass the registry explicitly because `package.json` defa
     registry: vscode-marketplace
 ```
 
+## Raw File Example
+
+Use `file-format: raw` to compare a version extracted from any file against the same file in another Git ref. Raw mode requires `compare-source: git-ref` and a `version-pattern` with exactly one capture group:
+
+```yaml
+- id: generator-version
+  uses: jfrz38/check-version-change@v1
+  with:
+    file-path: wrapper/openapitools.json
+    compare-source: git-ref
+    compare-ref: HEAD^
+    file-format: raw
+    version-pattern: '"version"\s*:\s*"([^"]+)"'
+```
+
+For example, this extracts `7.14.0` from a nested value without interpreting the file as `package.json`:
+
+```json
+{
+  "generator-cli": {
+    "version": "7.14.0"
+  }
+}
+```
+
+Raw mode accepts any filename or extension, does not select or query a registry, and does not require a package name. `package-name-detected` is empty unless `package-name` is provided explicitly.
+
 ## Supported Files
 
 | File | Registry |
@@ -111,18 +138,21 @@ For VS Code extensions, pass the registry explicitly because `package.json` defa
 | `go.mod` | Go module proxy |
 | `package.json` with `registry: vscode-marketplace` | VS Code Marketplace |
 
+With `file-format: raw`, any text file can be used when comparing against a Git ref.
+
 ## Inputs
 
 | Input | Required | Default | Description |
 | --- | --- | --- | --- |
-| `file-path` | Yes | - | Path to `package.json`, `pyproject.toml`, `setup.py`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `Cargo.toml`, or `go.mod`. |
+| `file-path` | Yes | - | Path to a supported package manifest, or any file when `file-format=raw`. |
+| `file-format` | No | `auto` | `auto` uses a supported ecosystem parser. `raw` extracts with `version-pattern` and is only valid with `compare-source=git-ref`. |
 | `package-name` | No | detected | Override the package name used for registry lookup. |
 | `registry` | No | `auto` | Registry to query: `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, `go-proxy`, or `vscode-marketplace`. |
 | `compare-source` | No | `git-ref` | Comparison source: `git-ref` or `registry`. |
 | `compare-ref` | No | PR base ref | Git ref to compare against when `compare-source=git-ref`. |
 | `compare-file-path` | No | `file-path` | File path to read from the target ref when `compare-source=git-ref`. |
 | `allow-missing-compare-file` | No | `false` | When `true`, treat a missing comparison file at the target Git ref as an initial version instead of failing. |
-| `version-pattern` | No | parser default | Custom regex used to extract the local version. Must contain exactly one capture group. |
+| `version-pattern` | No | parser default | Custom regex used to extract the version. Required with `file-format=raw` and must contain exactly one capture group. |
 | `compare-semver` | No | `true` | Compute `is-higher` with semver when both versions are semver-compatible. |
 | `fail-on-unchanged` | No | `false` | Fail the action when the local version does not differ from the compared version. This is the main publish-gate input for preventing duplicate versions. |
 | `fail-on-not-higher` | No | `false` | Optional stricter policy: fail when a compared version exists and the local version is not semver-greater. Useful only when your release process requires monotonically increasing versions. |
@@ -137,7 +167,7 @@ For VS Code extensions, pass the registry explicitly because `package.json` defa
 | `published-version` | Legacy alias for `compared-version`. |
 | `is-higher` | `true` when `compare-semver=true` and the local version is semver-greater than the compared version. |
 | `registry-detected` | Registry used for lookup, or an empty string when `compare-source=git-ref`. |
-| `package-name-detected` | Package name used for lookup. |
+| `package-name-detected` | Package name used for lookup. In raw mode, the explicit `package-name` or an empty string. |
 | `comparison-source-detected` | Comparison source used by the action. |
 | `compare-ref-resolved` | Resolved Git ref used when `compare-source=git-ref`. |
 | `compare-file-path-resolved` | Resolved file path used when `compare-source=git-ref`. |
@@ -293,7 +323,7 @@ Use `version-pattern` when the version is stored in a custom field:
     version-pattern: 'build_version\s*=\s*"([^"]+)"'
 ```
 
-The regex is applied to the full file contents and must contain exactly one capture group.
+The regex is applied to the full file contents and must contain exactly one capture group. With the default `file-format: auto`, the file must still be a supported package manifest. Use `file-format: raw` to bypass ecosystem parsing and compare an arbitrary file against another Git ref.
 
 ### Different File In Target Ref
 

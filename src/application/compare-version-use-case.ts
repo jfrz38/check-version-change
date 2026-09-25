@@ -2,9 +2,10 @@ import { SUPPORTED_REGISTRIES, type ActionOutputs, type RegistryInput, type Supp
 import { detectRegistryFromFile } from '../ecosystems/ecosystem-registry';
 import { buildActionOutputs } from './action-output-mapper';
 import type { CompareVersionRequest } from './compare-version-request';
-import { readLocalPackage } from './local-package-reader';
+import { readLocalPackage, readRawLocalVersion } from './local-package-reader';
 import { resolveComparisonVersion } from './comparison-version-resolver';
 import { compareVersions } from './version-comparison-service';
+import type { Version } from '../domain/value-objects/version';
 
 function isSupportedRegistry(inputRegistry: string): inputRegistry is SupportedRegistry {
   return SUPPORTED_REGISTRIES.includes(inputRegistry as SupportedRegistry);
@@ -28,21 +29,40 @@ export interface CompareVersionExecution {
 }
 
 export async function executeCompareVersion(request: CompareVersionRequest): Promise<CompareVersionExecution> {
-  const registryDetected = resolveRegistry(request.registry, request.filePath);
-  const localPackage = await readLocalPackage(request, registryDetected);
-  const packageNameDetected = request.packageNameOverride || localPackage.packageName.value;
+  if (request.fileFormat.isRaw() && request.compareSource.isRegistry()) {
+    throw new Error('file-format "raw" can only be used with compare-source "git-ref".');
+  }
 
-  if (!packageNameDetected) {
-    throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+  let registryDetected: SupportedRegistry | '';
+  let localVersion: Version;
+  let packageNameDetected: string;
+
+  if (request.fileFormat.isRaw()) {
+    if (!request.versionPattern) {
+      throw new Error('The "version-pattern" input is required when file-format is "raw".');
+    }
+
+    registryDetected = '';
+    localVersion = await readRawLocalVersion(request.filePath, request.versionPattern);
+    packageNameDetected = request.packageNameOverride;
+  } else {
+    registryDetected = resolveRegistry(request.registry, request.filePath);
+    const localPackage = await readLocalPackage(request, registryDetected);
+    localVersion = localPackage.version;
+    packageNameDetected = request.packageNameOverride || localPackage.packageName.value;
+
+    if (!packageNameDetected) {
+      throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
+    }
   }
 
   const resolvedComparison = await resolveComparisonVersion(request, registryDetected, packageNameDetected);
-  const comparison = compareVersions(localPackage.version, resolvedComparison.comparedVersion, request.compareSemver);
+  const comparison = compareVersions(localVersion, resolvedComparison.comparedVersion, request.compareSemver);
 
   return {
     outputs: buildActionOutputs({
       changed: comparison.changed,
-      localVersion: localPackage.version.value,
+      localVersion: localVersion.value,
       comparedVersion: resolvedComparison.comparedVersion,
       isHigher: comparison.isHigher,
       registryDetected: resolvedComparison.registryDetected,

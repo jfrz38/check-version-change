@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { CompareSource } from '../domain/value-objects/compare-source';
+import { FileFormat } from '../domain/value-objects/file-format';
 import type { RegistryInput } from '../types';
 
 export interface CompareVersionRequestProps {
@@ -9,6 +10,7 @@ export interface CompareVersionRequestProps {
   packageNameOverride?: string;
   registry: RegistryInput;
   compareSource: CompareSource;
+  fileFormat: FileFormat;
   compareRef?: string;
   allowMissingCompareFile: boolean;
   versionPattern?: string;
@@ -23,6 +25,7 @@ export class CompareVersionRequest {
   readonly packageNameOverride: string;
   readonly registry: RegistryInput;
   readonly compareSource: CompareSource;
+  readonly fileFormat: FileFormat;
   readonly compareRef: string;
   readonly allowMissingCompareFile: boolean;
   readonly versionPattern?: string;
@@ -36,6 +39,7 @@ export class CompareVersionRequest {
     this.packageNameOverride = props.packageNameOverride?.trim() || '';
     this.registry = props.registry;
     this.compareSource = props.compareSource;
+    this.fileFormat = props.fileFormat;
     this.compareRef = props.compareRef?.trim() || '';
     this.allowMissingCompareFile = props.allowMissingCompareFile;
     this.versionPattern = props.versionPattern?.trim() || undefined;

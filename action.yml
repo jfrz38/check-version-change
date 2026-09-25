@@ -1,11 +1,16 @@
 name: 'check-version-change'
-description: 'Compare a local package version with the latest version published to a registry or marketplace.'
+description: 'Compare a version from a local file with a registry, marketplace, or another Git ref.'
 author: 'jfrz38'
 
 inputs:
   file-path:
-    description: 'Path to package.json, pyproject.toml, setup.py, pom.xml, build.gradle, build.gradle.kts, Cargo.toml, or go.mod'
+    description: 'Path to a supported package manifest, or any file when file-format=raw'
     required: true
+
+  file-format:
+    description: 'How to read the file: auto uses a supported ecosystem parser; raw extracts the version with version-pattern and requires compare-source=git-ref'
+    required: false
+    default: 'auto'
 
   package-name:
     description: 'Optional override for the package name used in the registry lookup'
@@ -35,7 +40,7 @@ inputs:
     default: 'false'
 
   version-pattern:
-    description: 'Custom regex used to extract the local version from the file contents. Must contain exactly one capture group.'
+    description: 'Custom regex used to extract the version from file contents. Required with file-format=raw and must contain exactly one capture group.'
     required: false
 
   compare-semver:
