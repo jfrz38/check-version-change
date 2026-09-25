@@ -14,6 +14,7 @@ export const SUPPORTED_REGISTRIES = [
 export type SupportedRegistry = typeof SUPPORTED_REGISTRIES[number];
 export type RegistryInput = SupportedRegistry | 'auto';
 export type CompareSource = 'registry' | 'git-ref';
+export type FileFormat = 'auto' | 'raw';
 
 export interface LocalPackageInfo {
   packageName: PackageName;
@@ -34,6 +35,7 @@ export interface ActionInputs {
   packageNameOverride?: string;
   registry: RegistryInput;
   compareSource: CompareSource;
+  fileFormat: FileFormat;
   compareRef?: string;
   allowMissingCompareFile: boolean;
   versionPattern?: string;
