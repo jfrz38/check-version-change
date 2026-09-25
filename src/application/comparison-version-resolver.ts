@@ -3,6 +3,7 @@ import { ecosystemRegistry } from '../ecosystems/ecosystem-registry';
 import { parseLocalPackageContentForRegistry } from '../ecosystems/ecosystem-registry';
 import { GitFileNotFoundError } from '../utils/errors/git-file-not-found-error';
 import { readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../utils/git';
+import { extractVersionFromPattern } from '../utils/version-pattern';
 import type { SupportedRegistry } from '../types';
 import type { CompareVersionRequest } from './compare-version-request';
 
@@ -15,10 +16,14 @@ export interface ResolvedComparisonVersion {
 
 export async function resolveComparisonVersion(
   request: CompareVersionRequest,
-  registryDetected: SupportedRegistry,
+  registryDetected: SupportedRegistry | '',
   packageNameDetected: string,
 ): Promise<ResolvedComparisonVersion> {
   if (request.compareSource.isRegistry()) {
+    if (!registryDetected) {
+      throw new Error('A registry is required when compare-source is "registry".');
+    }
+
     const userAgent = `check-version-change/${github.context.runId || 'local'}`;
     const headers = { 'user-agent': userAgent };
 
@@ -52,10 +57,26 @@ export async function resolveComparisonVersion(
     throw error;
   }
   const compareContent = await readFileAtGitRef(request.cwd, compareFilePathResolved, compareRefResolved);
-  const comparedPackage = await parseLocalPackageContentForRegistry(registryDetected, compareFilePathResolved, compareContent, request.versionPattern);
+  let comparedVersion: string;
+  if (request.fileFormat.isRaw()) {
+    if (!request.versionPattern) {
+      throw new Error('The "version-pattern" input is required when file-format is "raw".');
+    }
+    comparedVersion = extractVersionFromPattern(compareContent, request.versionPattern);
+  } else {
+    if (!registryDetected) {
+      throw new Error('A registry is required when file-format is "auto".');
+    }
+    comparedVersion = (await parseLocalPackageContentForRegistry(
+      registryDetected,
+      compareFilePathResolved,
+      compareContent,
+      request.versionPattern,
+    )).version.value;
+  }
 
   return {
-    comparedVersion: comparedPackage.version.value,
+    comparedVersion,
     registryDetected: '',
     compareRefResolved,
     compareFilePathResolved,

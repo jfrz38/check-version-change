@@ -45,11 +45,16 @@ const gitFileNotFoundErrorMock = vi.hoisted(() => ({
   GitFileNotFoundError: class GitFileNotFoundError extends Error {},
 }));
 
+const fsPromisesMock = vi.hoisted(() => ({
+  readFile: vi.fn(),
+}));
+
 vi.mock('@actions/core', () => coreMock);
 vi.mock('@actions/github', () => githubMock);
 vi.mock('../../src/ecosystems/ecosystem-registry', () => registryMock);
 vi.mock('../../src/utils/git', () => gitUtilsMock);
 vi.mock('../../src/utils/errors/git-file-not-found-error', () => gitFileNotFoundErrorMock);
+vi.mock('node:fs/promises', () => fsPromisesMock);
 
 describe('main', () => {
   beforeEach(() => {
@@ -76,6 +81,7 @@ describe('main', () => {
     gitUtilsMock.resolveGitCompareRef.mockReturnValue('base-sha-123');
     gitUtilsMock.resolveCompareFilePathAtGitRef.mockImplementation((_cwd: string, filePath: string) => filePath);
     gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"name":"demo-package","version":"1.1.0"}');
+    fsPromisesMock.readFile.mockResolvedValue('{"generator-cli":{"version":"7.14.0"}}');
 
     coreMock.getInput.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
@@ -94,6 +100,158 @@ describe('main', () => {
 
       return inputs[name] ?? '';
     });
+  });
+
+  it('extracts raw versions from an arbitrary file and a git ref without selecting an ecosystem', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'git-ref',
+        'compare-ref': 'HEAD^',
+        'file-format': 'raw',
+        'file-path': 'wrapper/openapitools.json',
+        'compare-file-path': '',
+        'package-name': '',
+        'allow-missing-compare-file': 'false',
+        'version-pattern': '"version"\\s*:\\s*"([^"]+)"',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
+      };
+      return inputs[name] ?? '';
+    });
+    gitUtilsMock.resolveGitCompareRef.mockReturnValue('HEAD^');
+    gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"generator-cli":{"version":"7.13.0"}}');
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(result).toMatchObject({
+      changed: true,
+      localVersion: '7.14.0',
+      comparedVersion: '7.13.0',
+      publishedVersion: '7.13.0',
+      isHigher: true,
+      registryDetected: '',
+      packageNameDetected: '',
+      comparisonSourceDetected: 'git-ref',
+      compareRefResolved: 'HEAD^',
+      compareFilePathResolved: expect.stringMatching(/wrapper[\\/]openapitools\.json$/),
+    });
+    expect(fsPromisesMock.readFile).toHaveBeenCalledWith(
+      expect.stringMatching(/wrapper[\\/]openapitools\.json$/),
+      'utf8',
+    );
+    expect(gitUtilsMock.resolveGitCompareRef).toHaveBeenCalledWith('HEAD^', githubMock.context);
+    expect(registryMock.detectRegistryFromFile).not.toHaveBeenCalled();
+    expect(registryMock.parseLocalPackageFileForRegistry).not.toHaveBeenCalled();
+    expect(registryMock.parseLocalPackageContentForRegistry).not.toHaveBeenCalled();
+    expect(registryMock.ecosystemRegistry.fetchPublishedVersion).not.toHaveBeenCalled();
+  });
+
+  it('uses compare-file-path and an explicit package name in raw mode', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'git-ref',
+        'compare-ref': 'main',
+        'file-format': 'raw',
+        'file-path': 'wrapper/openapitools.json',
+        'compare-file-path': 'config/generator.json',
+        'package-name': 'openapi-generator',
+        'allow-missing-compare-file': 'false',
+        'version-pattern': '"version"\\s*:\\s*"([^"]+)"',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
+      };
+      return inputs[name] ?? '';
+    });
+    gitUtilsMock.resolveGitCompareRef.mockReturnValue('main');
+    gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"version":"7.13.0"}');
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(gitUtilsMock.resolveCompareFilePathAtGitRef).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringMatching(/config[\\/]generator\.json$/),
+      'main',
+      true,
+    );
+    expect(gitUtilsMock.readFileAtGitRef).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringMatching(/config[\\/]generator\.json$/),
+      'main',
+    );
+    expect(result.packageNameDetected).toBe('openapi-generator');
+    expect(result.compareFilePathResolved).toMatch(/config[\\/]generator\.json$/);
+  });
+
+  it('requires version-pattern in raw mode', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'compare-source': 'git-ref',
+      'file-format': 'raw',
+      'file-path': 'version.txt',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('The "version-pattern" input is required when file-format is "raw".');
+  });
+
+  it('rejects an invalid regex in raw mode', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'compare-source': 'git-ref',
+      'compare-ref': 'HEAD^',
+      'file-format': 'raw',
+      'file-path': 'version.txt',
+      'version-pattern': '(',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow(/Invalid "version-pattern" regex/);
+  });
+
+  it('rejects raw patterns without exactly one capture group', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'compare-source': 'git-ref',
+      'compare-ref': 'HEAD^',
+      'file-format': 'raw',
+      'file-path': 'version.txt',
+      'version-pattern': 'version=[^\\s]+',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow(/exactly one capture group/i);
+  });
+
+  it('rejects registry comparison in raw mode', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'compare-source': 'registry',
+      'file-format': 'raw',
+      'file-path': 'version.txt',
+      'version-pattern': 'version=(.+)',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('file-format "raw" can only be used with compare-source "git-ref".');
+    expect(registryMock.detectRegistryFromFile).not.toHaveBeenCalled();
+    expect(registryMock.ecosystemRegistry.fetchPublishedVersion).not.toHaveBeenCalled();
+  });
+
+  it('rejects unsupported file-format values', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'file-format': 'json',
+      'file-path': 'version.json',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('Unsupported file-format "json". Expected "auto" or "raw".');
   });
 
   it('compares against the version from a git ref when compare-source is omitted', async () => {

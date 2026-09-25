@@ -30,6 +30,7 @@ import { CompareVersionRequest } from './application/compare-version-request';
 import { compareVersion, executeCompareVersion } from './application/compare-version-use-case';
 import { assertVersionFailurePolicy, type VersionFailurePolicy } from './application/version-failure-policy';
 import { CompareSource } from './domain/value-objects/compare-source';
+import { FileFormat } from './domain/value-objects/file-format';
 
 function getBooleanInput(name: string, defaultValue: boolean): boolean {
   const rawValue = core.getInput(name);
@@ -98,6 +99,7 @@ export const internal = {
   resolveCompareFilePathAtGitRef,
   resolveGitCompareRef,
   CompareSource,
+  FileFormat,
   CompareVersionRequest,
   assertVersionFailurePolicy,
   compareVersion,
@@ -113,6 +115,7 @@ export async function run(): Promise<ActionOutputs> {
     cwd: process.cwd(),
     registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
     compareSource: CompareSource.fromInput(core.getInput('compare-source')),
+    fileFormat: FileFormat.fromInput(core.getInput('file-format')),
     filePath: core.getInput('file-path', { required: true }).trim(),
     compareFilePath: core.getInput('compare-file-path').trim(),
     packageNameOverride: core.getInput('package-name').trim(),
