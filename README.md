@@ -168,6 +168,8 @@ When `package.json` contains version `1.2.3`, this checks `ghcr.io/acme/my-plugi
 
 With `file-format: raw`, any text file can be used when comparing against a Git ref.
 
+Cargo packages may inherit their version from `[workspace.package]` by declaring `version.workspace = true`. The action resolves both automatically discovered parent workspaces and an explicit `[package].workspace` path, including when reading the package from another Git ref.
+
 ## Inputs
 
 | Input | Required | Default | Description |

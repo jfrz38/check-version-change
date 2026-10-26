@@ -1,4 +1,4 @@
-import type { EcosystemHandler, FetchJsonOptions, SupportedRegistry } from '../types';
+import type { EcosystemHandler, FetchJsonOptions, PackageManifestSource, SupportedRegistry } from '../types';
 import { CargoEcosystem } from './cargo/ecosystem';
 import { GoEcosystem } from './go/ecosystem';
 import { MavenCentralEcosystem } from './maven-central/ecosystem';
@@ -27,12 +27,18 @@ export class EcosystemRegistry {
     return this.getHandlerForRegistry(registry).parseLocalPackage(filePath, versionPattern);
   }
 
-  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
-    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern);
+  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string, manifestSource?: PackageManifestSource) {
+    return this.getHandlerForFile(filePath).parseLocalPackageContent(filePath, content, versionPattern, manifestSource);
   }
 
-  parseLocalPackageContentForRegistry(registry: SupportedRegistry, filePath: string, content: string, versionPattern?: string) {
-    return this.getHandlerForRegistry(registry).parseLocalPackageContent(filePath, content, versionPattern);
+  parseLocalPackageContentForRegistry(
+    registry: SupportedRegistry,
+    filePath: string,
+    content: string,
+    versionPattern?: string,
+    manifestSource?: PackageManifestSource,
+  ) {
+    return this.getHandlerForRegistry(registry).parseLocalPackageContent(filePath, content, versionPattern, manifestSource);
   }
 
   fetchPublishedVersion(registry: SupportedRegistry, packageName: string, options?: FetchJsonOptions): Promise<string> {
@@ -73,14 +79,25 @@ export function parseLocalPackageFile(filePath: string, versionPattern?: string)
   return ecosystemRegistry.parseLocalPackageFile(filePath, versionPattern);
 }
 
-export function parseLocalPackageContent(filePath: string, content: string, versionPattern?: string) {
-  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern);
+export function parseLocalPackageContent(
+  filePath: string,
+  content: string,
+  versionPattern?: string,
+  manifestSource?: PackageManifestSource,
+) {
+  return ecosystemRegistry.parseLocalPackageContent(filePath, content, versionPattern, manifestSource);
 }
 
 export function parseLocalPackageFileForRegistry(registry: SupportedRegistry, filePath: string, versionPattern?: string) {
   return ecosystemRegistry.parseLocalPackageFileForRegistry(registry, filePath, versionPattern);
 }
 
-export function parseLocalPackageContentForRegistry(registry: SupportedRegistry, filePath: string, content: string, versionPattern?: string) {
-  return ecosystemRegistry.parseLocalPackageContentForRegistry(registry, filePath, content, versionPattern);
+export function parseLocalPackageContentForRegistry(
+  registry: SupportedRegistry,
+  filePath: string,
+  content: string,
+  versionPattern?: string,
+  manifestSource?: PackageManifestSource,
+) {
+  return ecosystemRegistry.parseLocalPackageContentForRegistry(registry, filePath, content, versionPattern, manifestSource);
 }
