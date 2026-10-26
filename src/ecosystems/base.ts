@@ -3,7 +3,7 @@ import path from 'node:path';
 import { LocalPackage } from '../domain/value-objects/local-package';
 import { LocalPackageCandidate } from '../domain/value-objects/local-package-candidate';
 import { Version } from '../domain/value-objects/version';
-import type { EcosystemHandler, FetchJsonOptions, SupportedRegistry } from '../types';
+import type { EcosystemHandler, FetchJsonOptions, PackageManifestSource, SupportedRegistry } from '../types';
 import { extractVersionFromPattern } from '../utils/version-pattern';
 
 export abstract class BaseEcosystemHandler implements EcosystemHandler {
@@ -24,7 +24,12 @@ export abstract class BaseEcosystemHandler implements EcosystemHandler {
     return this.parseLocalPackageContent(filePath, content, versionPattern);
   }
 
-  async parseLocalPackageContent(filePath: string, content: string, versionPattern?: string): Promise<LocalPackage> {
+  async parseLocalPackageContent(
+    filePath: string,
+    content: string,
+    versionPattern?: string,
+    _manifestSource?: PackageManifestSource,
+  ): Promise<LocalPackage> {
     const parsed = await this.parseFromFile(filePath, content);
 
     if (versionPattern) {

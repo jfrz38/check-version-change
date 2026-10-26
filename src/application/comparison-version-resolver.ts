@@ -1,10 +1,11 @@
 import * as github from '@actions/github';
+import path from 'node:path';
 import { ecosystemRegistry } from '../ecosystems/ecosystem-registry';
 import { parseLocalPackageContentForRegistry } from '../ecosystems/ecosystem-registry';
 import { GitFileNotFoundError } from '../utils/errors/git-file-not-found-error';
-import { readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../utils/git';
+import { listFilesAtGitRef, readFileAtGitRef, resolveCompareFilePathAtGitRef, resolveGitCompareRef } from '../utils/git';
 import { extractVersionFromPattern } from '../utils/version-pattern';
-import type { SupportedRegistry } from '../types';
+import type { PackageManifestSource, SupportedRegistry } from '../types';
 import type { CompareVersionRequest } from './compare-version-request';
 
 export interface ResolvedComparisonVersion {
@@ -12,6 +13,28 @@ export interface ResolvedComparisonVersion {
   registryDetected: SupportedRegistry | '';
   compareRefResolved: string;
   compareFilePathResolved: string;
+}
+
+function createGitRefManifestSource(repoRoot: string, gitRef: string): PackageManifestSource {
+  let filesAtRefPromise: Promise<Set<string>> | undefined;
+
+  return {
+    rootDirectory: repoRoot,
+    async readFile(filePath: string): Promise<string | undefined> {
+      const relativePath = path.relative(repoRoot, filePath);
+      if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+        return undefined;
+      }
+
+      const normalizedPath = relativePath.split(path.sep).join('/');
+      filesAtRefPromise ??= listFilesAtGitRef(repoRoot, gitRef).then((files) => new Set(files));
+      if (!(await filesAtRefPromise).has(normalizedPath)) {
+        return undefined;
+      }
+
+      return readFileAtGitRef(repoRoot, filePath, gitRef);
+    },
+  };
 }
 
 export async function resolveComparisonVersion(
@@ -72,6 +95,7 @@ export async function resolveComparisonVersion(
       compareFilePathResolved,
       compareContent,
       request.versionPattern,
+      createGitRefManifestSource(request.cwd, compareRefResolved),
     )).version.value;
   }
 

@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const coreMock = vi.hoisted(() => ({
@@ -81,6 +82,7 @@ describe('main', () => {
     gitUtilsMock.resolveGitCompareRef.mockReturnValue('base-sha-123');
     gitUtilsMock.resolveCompareFilePathAtGitRef.mockImplementation((_cwd: string, filePath: string) => filePath);
     gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"name":"demo-package","version":"1.1.0"}');
+    gitUtilsMock.listFilesAtGitRef.mockResolvedValue([]);
     fsPromisesMock.readFile.mockResolvedValue('{"generator-cli":{"version":"7.14.0"}}');
 
     coreMock.getInput.mockImplementation((name: string) => {
@@ -318,6 +320,53 @@ describe('main', () => {
       expect.stringMatching(/packages[\\/]+shared[\\/]+package\.json$/),
       expect.any(String),
       undefined,
+      expect.objectContaining({
+        rootDirectory: expect.any(String),
+        readFile: expect.any(Function),
+      }),
+    );
+  });
+
+  it('makes related manifests from the comparison Git ref available to ecosystem parsers', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      registry: 'auto',
+      'compare-source': 'git-ref',
+      'compare-ref': 'main',
+      'file-path': 'crates/demo/Cargo.toml',
+      'compare-file-path': '',
+      'allow-missing-compare-file': 'false',
+      'compare-semver': 'true',
+    })[name] ?? '');
+    registryMock.detectRegistryFromFile.mockReturnValue('crates-io');
+    gitUtilsMock.resolveGitCompareRef.mockReturnValue('main');
+    gitUtilsMock.listFilesAtGitRef.mockResolvedValue([
+      'Cargo.toml',
+      'crates/demo/Cargo.toml',
+    ]);
+    gitUtilsMock.readFileAtGitRef.mockImplementation(async (_cwd: string, filePath: string) => (
+      path.relative(process.cwd(), filePath).split(path.sep).join('/') === 'Cargo.toml'
+        ? '[workspace.package]\nversion = "1.5.0"'
+        : '[package]\nname = "demo"\nversion.workspace = true'
+    ));
+    registryMock.parseLocalPackageContentForRegistry.mockImplementation(
+      async (_registry: string, _filePath: string, _content: string, _pattern: string | undefined, source: { readFile(filePath: string): Promise<string | undefined> }) => {
+        const workspaceContent = await source.readFile(path.resolve(process.cwd(), 'Cargo.toml'));
+        return {
+          packageName: { value: 'demo' },
+          version: { value: workspaceContent?.match(/version = "([^"]+)"/)?.[1] },
+        };
+      },
+    );
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(result.comparedVersion).toBe('1.5.0');
+    expect(gitUtilsMock.listFilesAtGitRef).toHaveBeenCalledWith(process.cwd(), 'main');
+    expect(gitUtilsMock.readFileAtGitRef).toHaveBeenCalledWith(
+      process.cwd(),
+      path.resolve(process.cwd(), 'Cargo.toml'),
+      'main',
     );
   });
 
