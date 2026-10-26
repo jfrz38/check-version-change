@@ -5,6 +5,7 @@ const coreMock = vi.hoisted(() => ({
   setOutput: vi.fn(),
   warning: vi.fn(),
   setFailed: vi.fn(),
+  setSecret: vi.fn(),
 }));
 
 const githubMock = vi.hoisted(() => ({
@@ -49,12 +50,17 @@ const fsPromisesMock = vi.hoisted(() => ({
   readFile: vi.fn(),
 }));
 
+const ociResolverMock = vi.hoisted(() => ({
+  resolveOciTagExistence: vi.fn(),
+}));
+
 vi.mock('@actions/core', () => coreMock);
 vi.mock('@actions/github', () => githubMock);
 vi.mock('../../src/ecosystems/ecosystem-registry', () => registryMock);
 vi.mock('../../src/utils/git', () => gitUtilsMock);
 vi.mock('../../src/utils/errors/git-file-not-found-error', () => gitFileNotFoundErrorMock);
 vi.mock('node:fs/promises', () => fsPromisesMock);
+vi.mock('../../src/application/oci-tag-existence-resolver', () => ociResolverMock);
 
 describe('main', () => {
   beforeEach(() => {
@@ -82,6 +88,11 @@ describe('main', () => {
     gitUtilsMock.resolveCompareFilePathAtGitRef.mockImplementation((_cwd: string, filePath: string) => filePath);
     gitUtilsMock.readFileAtGitRef.mockResolvedValue('{"name":"demo-package","version":"1.1.0"}');
     fsPromisesMock.readFile.mockResolvedValue('{"generator-cli":{"version":"7.14.0"}}');
+    ociResolverMock.resolveOciTagExistence.mockResolvedValue({
+      exists: false,
+      manifestDigest: '',
+      reference: 'ghcr.io/example/demo-package:1.2.0',
+    });
 
     coreMock.getInput.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
@@ -420,6 +431,61 @@ describe('main', () => {
     expect(result.packageNameDetected).toBe('example.demo-extension');
     expect(result.registryDetected).toBe('vscode-marketplace');
     expect(result.comparedVersion).toBe('1.9.0');
+  });
+
+  it('checks whether the OCI tag for the local version exists', async () => {
+    coreMock.getInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        registry: 'auto',
+        'compare-source': 'oci',
+        'file-path': 'package.json',
+        'file-format': 'auto',
+        'oci-repository': 'ghcr.io/example/demo-package',
+        'oci-tag-pattern': 'v{version}',
+        'oci-username': 'octocat',
+        'oci-token': 'secret-token',
+        'compare-semver': 'true',
+        'fail-on-unchanged': 'false',
+        'fail-on-not-higher': 'false',
+      };
+      return inputs[name] ?? '';
+    });
+    ociResolverMock.resolveOciTagExistence.mockResolvedValue({
+      exists: true,
+      manifestDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      reference: 'ghcr.io/example/demo-package:v1.2.0',
+    });
+
+    const { run } = await import('../../src/main');
+    const result = await run();
+
+    expect(coreMock.setSecret).toHaveBeenCalledWith('secret-token');
+    expect(result).toMatchObject({
+      changed: false,
+      comparedVersion: '1.2.0',
+      comparisonSourceDetected: 'oci',
+      registryDetected: '',
+      ociTagExists: true,
+      ociManifestDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      ociReferenceResolved: 'ghcr.io/example/demo-package:v1.2.0',
+    });
+    expect(registryMock.ecosystemRegistry.fetchPublishedVersion).not.toHaveBeenCalled();
+    expect(gitUtilsMock.resolveCompareFilePathAtGitRef).not.toHaveBeenCalled();
+    expect(coreMock.setOutput).toHaveBeenCalledWith('oci-tag-exists', 'true');
+  });
+
+  it('rejects fail-on-not-higher in OCI mode', async () => {
+    coreMock.getInput.mockImplementation((name: string) => ({
+      'compare-source': 'oci',
+      'file-path': 'package.json',
+      'oci-repository': 'ghcr.io/example/demo-package',
+      'fail-on-not-higher': 'true',
+    })[name] ?? '');
+
+    const { run } = await import('../../src/main');
+
+    await expect(run()).rejects.toThrow('The "fail-on-not-higher" input cannot be used with compare-source "oci".');
+    expect(ociResolverMock.resolveOciTagExistence).not.toHaveBeenCalled();
   });
 
   it('fails after setting outputs when fail-on-unchanged is enabled and versions match', async () => {

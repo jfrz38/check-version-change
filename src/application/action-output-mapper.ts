@@ -12,6 +12,9 @@ export interface BuildActionOutputsParams {
   compareSource: CompareSource;
   compareRefResolved: string;
   compareFilePathResolved: string;
+  ociTagExists?: boolean;
+  ociManifestDigest?: string;
+  ociReferenceResolved?: string;
 }
 
 export function buildActionOutputs(params: BuildActionOutputsParams): ActionOutputs {
@@ -26,5 +29,8 @@ export function buildActionOutputs(params: BuildActionOutputsParams): ActionOutp
     comparisonSourceDetected: params.compareSource.value,
     compareRefResolved: params.compareRefResolved,
     compareFilePathResolved: params.compareFilePathResolved,
+    ociTagExists: params.ociTagExists ?? false,
+    ociManifestDigest: params.ociManifestDigest ?? '',
+    ociReferenceResolved: params.ociReferenceResolved ?? '',
   };
 }

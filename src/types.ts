@@ -13,7 +13,7 @@ export const SUPPORTED_REGISTRIES = [
 
 export type SupportedRegistry = typeof SUPPORTED_REGISTRIES[number];
 export type RegistryInput = SupportedRegistry | 'auto';
-export type CompareSource = 'registry' | 'git-ref';
+export type CompareSource = 'registry' | 'git-ref' | 'oci';
 export type FileFormat = 'auto' | 'raw';
 
 export interface LocalPackageInfo {
@@ -40,6 +40,10 @@ export interface ActionInputs {
   allowMissingCompareFile: boolean;
   versionPattern?: string;
   compareSemver: boolean;
+  ociRepository?: string;
+  ociTagPattern?: string;
+  ociUsername?: string;
+  ociToken?: string;
 }
 
 export interface ActionOutputs {
@@ -53,6 +57,9 @@ export interface ActionOutputs {
   comparisonSourceDetected: CompareSource;
   compareRefResolved: string;
   compareFilePathResolved: string;
+  ociTagExists: boolean;
+  ociManifestDigest: string;
+  ociReferenceResolved: string;
 }
 
 export interface FetchJsonOptions {

@@ -35,6 +35,7 @@ vi.mock('@actions/core', () => ({
   setFailed(message: string) {
     state.failedMessages.push(String(message));
   },
+  setSecret() {},
 }));
 
 vi.mock('@actions/github', () => ({

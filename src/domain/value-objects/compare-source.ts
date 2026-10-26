@@ -17,7 +17,11 @@ export class CompareSource {
       return new CompareSource('registry');
     }
 
-    throw new Error(`Unsupported compare-source "${rawValue}". Expected "registry" or "git-ref".`);
+    if (normalized === 'oci') {
+      return new CompareSource('oci');
+    }
+
+    throw new Error(`Unsupported compare-source "${rawValue}". Expected "registry", "git-ref", or "oci".`);
   }
 
   isRegistry(): boolean {
@@ -26,5 +30,9 @@ export class CompareSource {
 
   isGitRef(): boolean {
     return this.value === 'git-ref';
+  }
+
+  isOci(): boolean {
+    return this.value === 'oci';
   }
 }

@@ -15,6 +15,10 @@ export interface CompareVersionRequestProps {
   allowMissingCompareFile: boolean;
   versionPattern?: string;
   compareSemver: boolean;
+  ociRepository?: string;
+  ociTagPattern?: string;
+  ociUsername?: string;
+  ociToken?: string;
 }
 
 export class CompareVersionRequest {
@@ -30,6 +34,10 @@ export class CompareVersionRequest {
   readonly allowMissingCompareFile: boolean;
   readonly versionPattern?: string;
   readonly compareSemver: boolean;
+  readonly ociRepository: string;
+  readonly ociTagPattern: string;
+  readonly ociUsername: string;
+  readonly ociToken: string;
 
   constructor(props: CompareVersionRequestProps) {
     this.cwd = props.cwd;
@@ -44,5 +52,9 @@ export class CompareVersionRequest {
     this.allowMissingCompareFile = props.allowMissingCompareFile;
     this.versionPattern = props.versionPattern?.trim() || undefined;
     this.compareSemver = props.compareSemver;
+    this.ociRepository = props.ociRepository?.trim() || '';
+    this.ociTagPattern = props.ociTagPattern?.trim() || '{version}';
+    this.ociUsername = props.ociUsername?.trim() || '';
+    this.ociToken = props.ociToken?.trim() || '';
   }
 }

@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+import * as github from '@actions/github';
 import type { ActionOutputs } from './types';
 import { CargoEcosystem } from './ecosystems/cargo/ecosystem';
 import { parseCargoToml } from './ecosystems/cargo/parser';
@@ -60,6 +61,9 @@ function setOutputs(outputs: ActionOutputs): void {
   core.setOutput('comparison-source-detected', outputs.comparisonSourceDetected);
   core.setOutput('compare-ref-resolved', outputs.compareRefResolved);
   core.setOutput('compare-file-path-resolved', outputs.compareFilePathResolved);
+  core.setOutput('oci-tag-exists', String(outputs.ociTagExists));
+  core.setOutput('oci-manifest-digest', outputs.ociManifestDigest);
+  core.setOutput('oci-reference-resolved', outputs.ociReferenceResolved);
 }
 
 export const internal = {
@@ -111,6 +115,10 @@ export async function run(): Promise<ActionOutputs> {
     failOnUnchanged: getBooleanInput('fail-on-unchanged', false),
     failOnNotHigher: getBooleanInput('fail-on-not-higher', false),
   };
+  const ociToken = core.getInput('oci-token').trim();
+  if (ociToken) {
+    core.setSecret(ociToken);
+  }
   const request = new CompareVersionRequest({
     cwd: process.cwd(),
     registry: (core.getInput('registry') || 'auto').trim().toLowerCase() as never,
@@ -123,7 +131,14 @@ export async function run(): Promise<ActionOutputs> {
     allowMissingCompareFile: getBooleanInput('allow-missing-compare-file', false),
     versionPattern: core.getInput('version-pattern').trim(),
     compareSemver: getBooleanInput('compare-semver', true),
+    ociRepository: core.getInput('oci-repository'),
+    ociTagPattern: core.getInput('oci-tag-pattern'),
+    ociUsername: core.getInput('oci-username').trim() || github.context.actor,
+    ociToken,
   });
+  if (request.compareSource.isOci() && failurePolicy.failOnNotHigher) {
+    throw new Error('The "fail-on-not-higher" input cannot be used with compare-source "oci".');
+  }
   const result = await executeCompareVersion(request);
   if (result.warning) {
     core.warning(`Semver comparison skipped: ${result.warning}`);
