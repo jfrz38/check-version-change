@@ -62,10 +62,20 @@ export interface FetchJsonOptions {
   timeoutMs?: number;
 }
 
+export interface PackageManifestSource {
+  readonly rootDirectory?: string;
+  readFile(filePath: string): Promise<string | undefined>;
+}
+
 export interface EcosystemHandler {
   readonly registry: SupportedRegistry;
   supports(filePath: string): boolean;
   parseLocalPackage(filePath: string, versionPattern?: string): Promise<LocalPackage>;
-  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string): Promise<LocalPackage>;
+  parseLocalPackageContent(
+    filePath: string,
+    content: string,
+    versionPattern?: string,
+    manifestSource?: PackageManifestSource,
+  ): Promise<LocalPackage>;
   fetchPublishedVersion(packageName: string, options?: FetchJsonOptions): Promise<string>;
 }
