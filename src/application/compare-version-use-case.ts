@@ -6,6 +6,7 @@ import { readLocalPackage, readRawLocalVersion } from './local-package-reader';
 import { resolveComparisonVersion } from './comparison-version-resolver';
 import { compareVersions } from './version-comparison-service';
 import type { Version } from '../domain/value-objects/version';
+import { resolveOciTagExistence } from './oci-tag-existence-resolver';
 
 function isSupportedRegistry(inputRegistry: string): inputRegistry is SupportedRegistry {
   return SUPPORTED_REGISTRIES.includes(inputRegistry as SupportedRegistry);
@@ -29,7 +30,7 @@ export interface CompareVersionExecution {
 }
 
 export async function executeCompareVersion(request: CompareVersionRequest): Promise<CompareVersionExecution> {
-  if (request.fileFormat.isRaw() && request.compareSource.isRegistry()) {
+  if (request.fileFormat.isRaw() && !request.compareSource.isGitRef()) {
     throw new Error('file-format "raw" can only be used with compare-source "git-ref".');
   }
 
@@ -54,6 +55,27 @@ export async function executeCompareVersion(request: CompareVersionRequest): Pro
     if (!packageNameDetected) {
       throw new Error('Package name could not be detected from the provided file. Pass the "package-name" input explicitly.');
     }
+  }
+
+  if (request.compareSource.isOci()) {
+    const resolvedOci = await resolveOciTagExistence(request, localVersion.value);
+    const comparedVersion = resolvedOci.exists ? localVersion.value : '';
+    return {
+      outputs: buildActionOutputs({
+        changed: !resolvedOci.exists,
+        localVersion: localVersion.value,
+        comparedVersion,
+        isHigher: false,
+        registryDetected: '',
+        packageNameDetected,
+        compareSource: request.compareSource,
+        compareRefResolved: '',
+        compareFilePathResolved: '',
+        ociTagExists: resolvedOci.exists,
+        ociManifestDigest: resolvedOci.manifestDigest,
+        ociReferenceResolved: resolvedOci.reference,
+      }),
+    };
   }
 
   const resolvedComparison = await resolveComparisonVersion(request, registryDetected, packageNameDetected);

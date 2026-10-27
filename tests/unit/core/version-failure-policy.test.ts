@@ -15,6 +15,9 @@ function buildOutputs(overrides: Partial<ActionOutputs> = {}): ActionOutputs {
     comparisonSourceDetected: 'registry',
     compareRefResolved: '',
     compareFilePathResolved: '',
+    ociTagExists: false,
+    ociManifestDigest: '',
+    ociReferenceResolved: '',
     ...overrides,
   };
 }
