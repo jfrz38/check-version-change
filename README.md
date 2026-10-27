@@ -5,9 +5,9 @@
 [![GitHub Marketplace](https://img.shields.io/badge/marketplace-check--version--change-blue?logo=githubactions)](https://github.com/marketplace/actions/check-version-change)
 [![License](https://img.shields.io/github/license/jfrz38/check-version-change)](LICENSE)
 
-`check-version-change` is a production-oriented GitHub Action that compares a version declared in your repository with either the latest version published to a package registry or marketplace, or the version stored in another Git ref, then exposes the result as workflow outputs.
+`check-version-change` is a production-oriented GitHub Action that compares a version declared in your repository with either the latest version published to a package registry or marketplace, an exact OCI tag, or the version stored in another Git ref, then exposes the result as workflow outputs.
 
-Use it to gate publish jobs, detect whether a package version changed in a pull request, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, the `Go module proxy`, or the `VS Code Marketplace`.
+Use it to gate publish jobs, detect whether a package version changed in a pull request, check whether its OCI tag already exists, or compare the current project version against `npm`, `PyPI`, `Maven Central`, `crates.io`, the `Go module proxy`, or the `VS Code Marketplace`.
 
 ## Quick Start
 
@@ -124,6 +124,34 @@ For example, this extracts `7.14.0` from a nested value without interpreting the
 
 Raw mode accepts any filename or extension, does not select or query a registry, and does not require a package name. `package-name-detected` is empty unless `package-name` is provided explicitly.
 
+## OCI / GHCR Example
+
+Check whether the OCI tag corresponding to the local package version already exists:
+
+```yaml
+permissions:
+  contents: read
+  packages: read
+
+steps:
+  - uses: actions/checkout@v4
+
+  - id: version-check
+    uses: jfrz38/check-version-change@v1
+    with:
+      file-path: package.json
+      compare-source: oci
+      oci-repository: ghcr.io/acme/my-plugin
+      oci-tag-pattern: 'v{version}'
+      oci-token: ${{ secrets.GITHUB_TOKEN }}
+
+  - name: Create release
+    if: steps.version-check.outputs.oci-tag-exists == 'false'
+    run: ./create-release.sh
+```
+
+When `package.json` contains version `1.2.3`, this checks `ghcr.io/acme/my-plugin:v1.2.3`. Public repositories can omit `oci-token`. The action only checks tag existence and returns its manifest digest; it does not download or compare artifact contents.
+
 ## Supported Files
 
 | File | Registry |
@@ -140,6 +168,8 @@ Raw mode accepts any filename or extension, does not select or query a registry,
 
 With `file-format: raw`, any text file can be used when comparing against a Git ref.
 
+Cargo packages may inherit their version from `[workspace.package]` by declaring `version.workspace = true`. The action resolves both automatically discovered parent workspaces and an explicit `[package].workspace` path, including when reading the package from another Git ref.
+
 ## Inputs
 
 | Input | Required | Default | Description |
@@ -148,7 +178,7 @@ With `file-format: raw`, any text file can be used when comparing against a Git 
 | `file-format` | No | `auto` | `auto` uses a supported ecosystem parser. `raw` extracts with `version-pattern` and is only valid with `compare-source=git-ref`. |
 | `package-name` | No | detected | Override the package name used for registry lookup. |
 | `registry` | No | `auto` | Registry to query: `auto`, `npm`, `pypi`, `maven-central`, `crates-io`, `go-proxy`, or `vscode-marketplace`. |
-| `compare-source` | No | `git-ref` | Comparison source: `git-ref` or `registry`. |
+| `compare-source` | No | `git-ref` | Comparison source: `git-ref`, `registry`, or `oci`. |
 | `compare-ref` | No | PR base ref | Git ref to compare against when `compare-source=git-ref`. |
 | `compare-file-path` | No | `file-path` | File path to read from the target ref when `compare-source=git-ref`. |
 | `allow-missing-compare-file` | No | `false` | When `true`, treat a missing comparison file at the target Git ref as an initial version instead of failing. |
@@ -156,6 +186,10 @@ With `file-format: raw`, any text file can be used when comparing against a Git 
 | `compare-semver` | No | `true` | Compute `is-higher` with semver when both versions are semver-compatible. |
 | `fail-on-unchanged` | No | `false` | Fail the action when the local version does not differ from the compared version. This is the main publish-gate input for preventing duplicate versions. |
 | `fail-on-not-higher` | No | `false` | Optional stricter policy: fail when a compared version exists and the local version is not semver-greater. Useful only when your release process requires monotonically increasing versions. |
+| `oci-repository` | With OCI | - | OCI repository without a scheme or tag, for example `ghcr.io/acme/my-plugin`. |
+| `oci-tag-pattern` | No | `{version}` | OCI tag template. It must contain `{version}`, for example `v{version}`. |
+| `oci-username` | No | GitHub actor | Username used when exchanging `oci-token` for registry access. |
+| `oci-token` | No | - | Token for a private OCI repository. GHCR accepts `GITHUB_TOKEN` when the workflow has package access. |
 
 ## Outputs
 
@@ -171,6 +205,9 @@ With `file-format: raw`, any text file can be used when comparing against a Git 
 | `comparison-source-detected` | Comparison source used by the action. |
 | `compare-ref-resolved` | Resolved Git ref used when `compare-source=git-ref`. |
 | `compare-file-path-resolved` | Resolved file path used when `compare-source=git-ref`. |
+| `oci-tag-exists` | `true` when the resolved OCI tag exists. |
+| `oci-manifest-digest` | Digest of the existing OCI manifest, otherwise empty. |
+| `oci-reference-resolved` | Fully resolved OCI repository and tag, otherwise empty. |
 
 ## Comparison Modes
 
@@ -232,6 +269,24 @@ on:
 ```
 
 Registry mode compares the local version with the latest published package version.
+
+### OCI Tag
+
+OCI mode checks the exact tag generated from the local version rather than searching for a latest version:
+
+```yaml
+- id: version-check
+  uses: jfrz38/check-version-change@v1
+  with:
+    file-path: Cargo.toml
+    compare-source: oci
+    oci-repository: ghcr.io/acme/my-component
+    oci-tag-pattern: '{version}'
+```
+
+If the tag does not exist, `changed` is `true` and `compared-version` is empty. If it exists, `changed` is `false`, `compared-version` equals the local version, and `oci-manifest-digest` contains the digest returned by the registry.
+
+`fail-on-unchanged: true` can be used to fail when the tag already exists. `fail-on-not-higher` is not supported in OCI mode because this mode checks one exact tag and does not order registry versions.
 
 ## More Examples
 

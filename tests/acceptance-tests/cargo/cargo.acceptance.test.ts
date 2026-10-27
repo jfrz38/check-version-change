@@ -11,19 +11,26 @@ describe('cargo acceptance', () => {
     project = undefined;
   });
 
-  it('runs the full crates.io flow from Cargo.toml', async () => {
+  it('runs the full crates.io flow with a workspace-inherited version', async () => {
     project = createTemporaryProject({
       'Cargo.toml': `
+[workspace]
+members = ["crates/serde"]
+
+[workspace.package]
+version = "999.0.0"
+`,
+      'crates/serde/Cargo.toml': `
 [package]
 name = "serde"
-version = "999.0.0"
+version.workspace = true
 `,
     });
 
     const { result } = await runActionWithInputs({
       'compare-source': 'registry',
       'compare-semver': 'true',
-      'file-path': project.filePath('Cargo.toml'),
+      'file-path': project.filePath('crates/serde/Cargo.toml'),
     });
 
     expect(result.registryDetected).toBe('crates-io');

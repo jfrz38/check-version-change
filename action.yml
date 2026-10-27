@@ -1,5 +1,5 @@
 name: 'check-version-change'
-description: 'Compare a version from a local file with a registry, marketplace, or another Git ref.'
+description: 'Compare a local version with a registry, an OCI tag, or another Git ref.'
 author: 'jfrz38'
 
 inputs:
@@ -22,7 +22,7 @@ inputs:
     default: 'auto'
 
   compare-source:
-    description: 'Where to read the comparison version from: registry or git-ref'
+    description: 'Where to check the local version: registry, git-ref, or oci'
     required: false
     default: 'git-ref'
 
@@ -58,6 +58,23 @@ inputs:
     required: false
     default: 'false'
 
+  oci-repository:
+    description: 'OCI repository without scheme or tag, for example ghcr.io/owner/image. Required when compare-source=oci.'
+    required: false
+
+  oci-tag-pattern:
+    description: 'OCI tag template containing {version}'
+    required: false
+    default: '{version}'
+
+  oci-username:
+    description: 'Username used to authenticate to the OCI registry. Defaults to the GitHub actor.'
+    required: false
+
+  oci-token:
+    description: 'Optional token used to authenticate to the OCI registry'
+    required: false
+
 outputs:
   changed:
     description: 'true when the local version differs from the published version, or when no published version exists'
@@ -88,6 +105,15 @@ outputs:
 
   compare-file-path-resolved:
     description: 'Resolved file path used when compare-source=git-ref, otherwise an empty string'
+
+  oci-tag-exists:
+    description: 'true when the resolved OCI tag exists'
+
+  oci-manifest-digest:
+    description: 'Manifest digest returned for an existing OCI tag'
+
+  oci-reference-resolved:
+    description: 'Resolved OCI repository and tag when compare-source=oci'
 
 runs:
   using: 'node24'

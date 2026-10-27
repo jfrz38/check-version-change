@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { compareSemverVersions } from '../../../src/utils/semver';
 import { extractVersionFromPattern } from '../../../src/utils/version-pattern';
 import { FileFormat } from '../../../src/domain/value-objects/file-format';
+import { CompareSource } from '../../../src/domain/value-objects/compare-source';
 
 describe('core', () => {
   it.each([
@@ -29,5 +30,12 @@ describe('core', () => {
 
     expect(result.comparable).toBe(false);
     expect(result.isHigher).toBe(false);
+  });
+
+  it('accepts OCI as a comparison source', () => {
+    const source = CompareSource.fromInput(' OCI ');
+
+    expect(source.value).toBe('oci');
+    expect(source.isOci()).toBe(true);
   });
 });

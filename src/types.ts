@@ -13,7 +13,7 @@ export const SUPPORTED_REGISTRIES = [
 
 export type SupportedRegistry = typeof SUPPORTED_REGISTRIES[number];
 export type RegistryInput = SupportedRegistry | 'auto';
-export type CompareSource = 'registry' | 'git-ref';
+export type CompareSource = 'registry' | 'git-ref' | 'oci';
 export type FileFormat = 'auto' | 'raw';
 
 export interface LocalPackageInfo {
@@ -40,6 +40,10 @@ export interface ActionInputs {
   allowMissingCompareFile: boolean;
   versionPattern?: string;
   compareSemver: boolean;
+  ociRepository?: string;
+  ociTagPattern?: string;
+  ociUsername?: string;
+  ociToken?: string;
 }
 
 export interface ActionOutputs {
@@ -53,6 +57,9 @@ export interface ActionOutputs {
   comparisonSourceDetected: CompareSource;
   compareRefResolved: string;
   compareFilePathResolved: string;
+  ociTagExists: boolean;
+  ociManifestDigest: string;
+  ociReferenceResolved: string;
 }
 
 export interface FetchJsonOptions {
@@ -62,10 +69,20 @@ export interface FetchJsonOptions {
   timeoutMs?: number;
 }
 
+export interface PackageManifestSource {
+  readonly rootDirectory?: string;
+  readFile(filePath: string): Promise<string | undefined>;
+}
+
 export interface EcosystemHandler {
   readonly registry: SupportedRegistry;
   supports(filePath: string): boolean;
   parseLocalPackage(filePath: string, versionPattern?: string): Promise<LocalPackage>;
-  parseLocalPackageContent(filePath: string, content: string, versionPattern?: string): Promise<LocalPackage>;
+  parseLocalPackageContent(
+    filePath: string,
+    content: string,
+    versionPattern?: string,
+    manifestSource?: PackageManifestSource,
+  ): Promise<LocalPackage>;
   fetchPublishedVersion(packageName: string, options?: FetchJsonOptions): Promise<string>;
 }
